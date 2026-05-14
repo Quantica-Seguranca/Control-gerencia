@@ -7,32 +7,54 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #secao-login { max-width: 300px; margin: 100px auto; text-align: center; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        #secao-painel { display: none; } /* Escondido até o login */
+        input { width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .btn-logout { width: auto; background-color: #dc3545; float: right; }
+    </style>
 </head>
 <body>
 
-    <header>
-        <h1>Gerência de Controle - Sentinela</h1>
-        <p>Monitoramento de Postos em Tempo Real</p>
-    </header>
+    <div id="secao-login">
+        <h2>Acesso Restrito</h2>
+        <input type="email" id="email" placeholder="E-mail da Gerência">
+        <input type="password" id="senha" placeholder="Senha">
+        <button onclick="fazerLogin()">Entrar</button>
+        <p id="erro-login" style="color: red;"></p>
+    </div>
 
-    <main>
-        <div id="status">Conectando ao banco de dados...</div>
-        <table border="1" id="tabela-visitas">
-            <thead>
-                <tr>
-                    <th>Colaborador</th>
-                    <th>Posto</th>
-                    <th>Data/Hora</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="corpo-tabela">
-                </tbody>
-        </table>
-    </main>
+    <div id="secao-painel">
+        <header>
+            <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+            <h1>Gerência de Controle - Sentinela</h1>
+            <p>Monitoramento de Postos em Tempo Real</p>
+        </header>
+
+        <main>
+            <div id="status">Conectando...</div>
+            <table id="tabela-visitas">
+                <thead>
+                    <tr>
+                        <th>Colaborador</th>
+                        <th>Posto</th>
+                        <th>Data/Hora</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-tabela"></tbody>
+            </table>
+        </main>
+    </div>
 
     <script>
-        // Suas credenciais fornecidas
         const firebaseConfig = {
             apiKey: "AIzaSyBL4Nka91iGIAWSTfvAmsqDHCj2KMhWZ70",
             authDomain: "sentinela-ops-profissional.firebaseapp.com",
@@ -42,43 +64,68 @@
             appId: "1:458111218365:web:0f3b41ab7c2ceb7feebdd4"
         };
 
-        // Inicializar o Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
 
-        // Referência para onde os dados de campo são salvos (ex: 'rondas' ou 'visitas')
-        // Ajuste o nome 'rondas' para o nome exato da pasta no seu Firebase
-        const caminhoDados = database.ref('rondas');
-
-        // Função para escutar os dados em tempo real
-        caminhoDados.on('value', (snapshot) => {
-            const corpoTabela = document.getElementById('corpo-tabela');
-            const statusDiv = document.getElementById('status');
-            corpoTabela.innerHTML = ""; // Limpa a tabela antes de atualizar
-
-            if (snapshot.exists()) {
-                statusDiv.innerText = "Dados atualizados.";
-                snapshot.forEach((childSnapshot) => {
-                    const dados = childSnapshot.val();
-                    
-                    // Cria uma nova linha na tabela
-                    const linha = `
-                        <tr>
-                            <td>${dados.colaborador || 'N/A'}</td>
-                            <td>${dados.posto || 'N/A'}</td>
-                            <td>${dados.dataHora || 'N/A'}</td>
-                            <td>${dados.status || 'OK'}</td>
-                        </tr>
-                    `;
-                    corpoTabela.innerHTML += linha;
-                });
+        // 1. MONITORAR ESTADO DE AUTENTICAÇÃO
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Usuário logado
+                document.getElementById('secao-login').style.display = 'none';
+                document.getElementById('secao-painel').style.display = 'block';
+                iniciarMonitoramento();
             } else {
-                statusDiv.innerText = "Nenhum registro encontrado.";
+                // Usuário deslogado
+                document.getElementById('secao-login').style.display = 'block';
+                document.getElementById('secao-painel').style.display = 'none';
             }
-        }, (error) => {
-            console.error("Erro na leitura:", error);
-            statusDiv.innerText = "Erro de permissão no Firebase.";
         });
+
+        // 2. FUNÇÃO DE LOGIN
+        function fazerLogin() {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const erroDiv = document.getElementById('erro-login');
+
+            auth.signInWithEmailAndPassword(email, senha)
+                .catch((error) => {
+                    erroDiv.innerText = "Falha no acesso: Verifique e-mail e senha.";
+                });
+        }
+
+        // 3. FUNÇÃO DE LOGOUT
+        function fazerLogout() {
+            auth.signOut();
+        }
+
+        // 4. MONITORAR DADOS (CHAMADA APENAS SE LOGADO)
+        function iniciarMonitoramento() {
+            const caminhoDados = database.ref('rondas');
+            caminhoDados.on('value', (snapshot) => {
+                const corpoTabela = document.getElementById('corpo-tabela');
+                const statusDiv = document.getElementById('status');
+                corpoTabela.innerHTML = "";
+
+                if (snapshot.exists()) {
+                    statusDiv.innerText = "Monitoramento ativo.";
+                    snapshot.forEach((childSnapshot) => {
+                        const dados = childSnapshot.val();
+                        const linha = `
+                            <tr>
+                                <td>${dados.colaborador || 'N/A'}</td>
+                                <td>${dados.posto || 'N/A'}</td>
+                                <td>${dados.dataHora || 'N/A'}</td>
+                                <td>${dados.status || 'OK'}</td>
+                            </tr>
+                        `;
+                        corpoTabela.innerHTML += linha;
+                    });
+                } else {
+                    statusDiv.innerText = "Nenhum registro encontrado no banco.";
+                }
+            });
+        }
     </script>
 </body>
 </html>
