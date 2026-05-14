@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINELA OPS - PAINEL ADM</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <style>
+        :root { --primary: #0a192f; --accent: #ffd600; --bg: #0f1c2e; --card: #16233a; --text: #e0e7ff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .header-adm { border-bottom: 3px solid var(--accent); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        input { padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #1e2a44; color: white; }
+        .tabela-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+        th { background: var(--primary); color: var(--accent); text-transform: uppercase; }
+        tr:hover { background: #1e2a44; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; background: var(--accent); color: #0a192f; }
+    </style>
+</head>
+<body>
+
+<div class="header-adm">
+    <h2>🛡️ PAINEL DE CONTROLE - ADMIN</h2>
+    <button onclick="location.href='index.html'" style="padding: 8px; cursor:pointer;">VOLTAR</button>
+</div>
+
+<div class="filtros">
+    <input type="text" id="filtro-usuario" placeholder="Filtrar por Operador..." onkeyup="filtrarTabela()">
+    <input type="text" id="filtro-posto" placeholder="Filtrar por Posto..." onkeyup="filtrarTabela()">
+</div>
+
+<div class="tabela-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Data/Hora</th>
+                <th>Operador</th>
+                <th>Posto</th>
+                <th>Missão</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="corpo-tabela">
+            <!-- Dados via JS -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+// --- MESMA CONFIGURAÇÃO DO SEU FIREBASE ---
+const firebaseConfig = {
+    apiKey: "AIzaSyBL4Nka91iGIAWSTfvAmsqDHCj2KMhWZ70",
+    authDomain: "sentinela-ops-profissional.firebaseapp.com",
+    projectId: "sentinela-ops-profissional",
+    storageBucket: "sentinela-ops-profissional.firebasestorage.app",
+    messagingSenderId: "458111218365",
+    appId: "1:458111218365:web:0f3b41ab7c2ceb7feebdd4"
+};
+
+firebase.initializeApp(firebaseConfig);
+const fs = firebase.firestore();
+
+// BUSCAR TODAS AS RONDAS (SEM FILTRO DE UID)
+async function carregarRondasGerais() {
+    const tabela = document.getElementById('corpo-tabela');
+    
+    // Busca os últimos 100 registros de QUALQUER usuário
+    const snap = await fs.collection("rondas").orderBy("timestamp", "desc").limit(100).get();
+    
+    let html = "";
+    snap.forEach(doc => {
+        const r = doc.data();
+        html += `
+            <tr class="linha-ronda">
+                <td>${r.data} <br> <small>${r.hora}</small></td>
+                <td class="td-user"><b>${r.colaborador || 'Sistema'}</b></td>
+                <td class="td-posto">${r.posto}</td>
+                <td><span class="badge">${r.motivo}</span></td>
+                <td>${r.obs.substring(0, 20)}...</td>
+            </tr>
+        `;
+    });
+    tabela.innerHTML = html;
+}
+
+function filtrarTabela() {
+    const user = document.getElementById('filtro-usuario').value.toUpperCase();
+    const posto = document.getElementById('filtro-posto').value.toUpperCase();
+    const linhas = document.querySelectorAll('.linha-ronda');
+
+    linhas.forEach(linha => {
+        const textoUser = linha.querySelector('.td-user').innerText.toUpperCase();
+        const textoPosto = linha.querySelector('.td-posto').innerText.toUpperCase();
+        
+        if (textoUser.includes(user) && textoPosto.includes(posto)) {
+            linha.style.display = "";
+        } else {
+            linha.style.display = "none";
+        }
+    });
+}
+
+// Iniciar
+carregarRondasGerais();
+</script>
+</body>
+</html>
