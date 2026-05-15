@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Gerência - Sentinela Ops</title>
     
+    <!-- Scripts Firebase unificados e atualizados para Firestore -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* Mantendo seu padrão visual e adicionando o login */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
         header { background-color: #2c3e50; color: white; padding: 1rem; text-align: center; border-radius: 8px; margin-bottom: 20px; }
         
@@ -58,7 +58,8 @@
                         <th>Colaborador</th>
                         <th>Posto</th>
                         <th>Data/Hora</th>
-                        <th>Status</th>
+                        <th>Missão / Motivo</th>
+                        <th>KM</th>
                     </tr>
                 </thead>
                 <tbody id="corpo-tabela"></tbody>
@@ -78,13 +79,13 @@
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const database = firebase.database();
+        const fs = firebase.firestore(); // Alterado de database para Firestore
 
         // Lista de e-mails autorizados (Admin e Gerência)
         const usuariosAutorizados = [
             'admin@sentinela.com', 
             'gerencia@sentinela.com',
-            'seu-email@dominio.com' // Adicione seu e-mail aqui
+            'seu-email@dominio.com' // Altere aqui para o seu e-mail de acesso administrativo
         ];
 
         auth.onAuthStateChanged((user) => {
@@ -119,30 +120,45 @@
         }
 
         function iniciarMonitoramento() {
-            const caminhoDados = database.ref('rondas');
-            caminhoDados.on('value', (snapshot) => {
+            // Escuta em Tempo Real na coleção "rondas" do Firestore ordenada pelas mais recentes
+            fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
                 const corpoTabela = document.getElementById('corpo-tabela');
                 const statusDiv = document.getElementById('status');
                 corpoTabela.innerHTML = "";
 
-                if (snapshot.exists()) {
-                    statusDiv.innerText = "Monitoramento em Tempo Real Ativo";
+                if (!snapshot.empty) {
+                    statusDiv.innerText = "Monitoramento em Tempo Real Ativo (Firestore)";
                     statusDiv.style.color = "#27ae60";
-                    snapshot.forEach((childSnapshot) => {
-                        const dados = childSnapshot.val();
+
+                    snapshot.forEach((doc) => {
+                        const dados = doc.data();
+                        
+                        // Adequação dos campos salvos pelo app principal
+                        const colaborador = dados.colaborador || 'N/A';
+                        const posto = dados.posto || 'N/A';
+                        const dataHora = (dados.data && r.hora) ? `${dados.data} às ${dados.hora}` : (dados.data || dados.hora || 'N/A');
+                        const motivo = dados.motivo || 'N/A';
+                        const km = dados.km || '0';
+
                         const linha = `
                             <tr>
-                                <td><strong>${dados.colaborador || 'N/A'}</strong></td>
-                                <td>${dados.posto || 'N/A'}</td>
-                                <td>${dados.dataHora || 'N/A'}</td>
-                                <td><span style="color: ${dados.status === 'Alerta' ? '#e74c3c' : '#27ae60'}">${dados.status || 'Normal'}</span></td>
+                                <td><strong>${colaborador}</strong></td>
+                                <td>${posto}</td>
+                                <td>${dataHora}</td>
+                                <td><span style="color: #2563eb; font-weight: bold;">${motivo}</span></td>
+                                <td>${km} KM</td>
                             </tr>
                         `;
                         corpoTabela.innerHTML += linha;
                     });
                 } else {
-                    statusDiv.innerText = "Nenhuma ronda registrada hoje.";
+                    statusDiv.innerText = "Nenhuma ronda registrada no banco de dados.";
+                    statusDiv.style.color = "#7f8c8d";
                 }
+            }, (error) => {
+                console.error("Erro ao ler dados: ", error);
+                document.getElementById('status').innerText = "Erro ao carregar dados do Cloud.";
+                document.getElementById('status').style.color = "#e74c3c";
             });
         }
     </script>
