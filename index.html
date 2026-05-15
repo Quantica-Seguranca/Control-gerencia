@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Biblioteca para geração do PDF do Mapa de Calor -->
+    <!-- Biblioteca para geração do PDF do Mapa de Calor e Financeiro -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -62,6 +62,7 @@
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
         th { background: var(--secondary); color: white; }
+        tr.total-row { background: #f8fafc; font-weight: bold; font-size: 16px; border-top: 2px solid #cbd5e1; }
 
         /* Controles de Tabela */
         .tabela-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; }
@@ -71,7 +72,7 @@
         .paginacao-btn { padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .paginacao-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 
-        /* NOVO LAYOUT DO MAPA DE CALOR: VERTICAL E FLUIDO */
+        /* Layout do Mapa de Calor */
         .heatmap-wrapper-vertical { display: flex; flex-direction: column; gap: 20px; max-width: 800px; }
         .seletor-posto-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .seletor-posto-container select { margin-bottom: 0; }
@@ -96,6 +97,13 @@
         .heatmap-legenda { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 13px; }
         .legenda-item { display: flex; align-items: center; gap: 6px; }
         .legenda-cor { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #cbd5e1; }
+
+        /* ESTILOS ESPECÍFICOS - VIEW FINANCEIRO */
+        .financeiro-grid-layout { display: grid; grid-template-columns: 320px 1fr; gap: 25px; align-items: flex-start; }
+        .form-financeiro-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-financeiro-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-financeiro-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .financeiro-painel-relatorio { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -118,6 +126,7 @@
         <button class="nav-btn" onclick="alternarVisao('postos')">🏢 Postos</button>
         <button class="nav-btn" onclick="alternarVisao('relatorios')">👤 Relatórios</button>
         <button class="nav-btn" onclick="alternarVisao('calor')">🔥 Mapa de Calor</button>
+        <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
         <button class="nav-btn btn-logout" onclick="fazerLogout()">Sair</button>
     </nav>
 
@@ -183,11 +192,9 @@
             </table>
         </section>
 
-        <!-- CALOR (MODIFICADO: FLUXO TOP-DOWN COM SELECT EM VEZ DE LISTA VERTICAL) -->
+        <!-- CALOR -->
         <section id="view-calor" class="view-secao">
             <div class="heatmap-wrapper-vertical">
-                
-                <!-- Área 1: Controle de Seleção do Posto (Fica no topo) -->
                 <div class="seletor-posto-container" data-html2pdf-ignore="true">
                     <label for="sel-posto-calor" style="font-size:14px; font-weight:bold; color:var(--secondary); display:block; margin-bottom:8px;">🏢 Selecione o Posto Alvo:</label>
                     <select id="sel-posto-calor" onchange="dispararMudancaSeletorPosto()">
@@ -195,7 +202,6 @@
                     </select>
                 </div>
 
-                <!-- Área 2: Painel de Impressão e Visualização do Mapa -->
                 <div class="heatmap-calendario-box" id="area-impressao-pdf">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
                         <div>
@@ -205,23 +211,93 @@
                         <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
                     </div>
 
-                    <!-- Controles de Mês -->
                     <div class="heatmap-controles" data-html2pdf-ignore="true">
                         <button class="secondary" onclick="alterarMes(-1)">◀ Voltar</button>
                         <div class="heatmap-mes-titulo" id="filtro-mes-ano-texto">Mês Corrente</div>
                         <button class="secondary" onclick="alterarMes(1)">Avançar ▶</button>
                     </div>
 
-                    <!-- Grid do Calendário -->
                     <div id="heatmap-container" class="heatmap-grid"></div>
 
-                    <!-- Legenda de Cores -->
                     <div class="heatmap-legenda">
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-0)"></div> 0 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-1-3)"></div> 1 a 3 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-4-7)"></div> 4 a 7 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-8-12)"></div> 8 a 12 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-13)"></div> 13+ vis.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FINANCEIRO (NOVA VIEW REGISTRO DE HORAS INEFICIENTES) -->
+        <section id="view-financeiro" class="view-secao">
+            <div class="financeiro-grid-layout">
+                
+                <!-- Formulário de Lançamento de Hora Ineficiente -->
+                <div class="form-financeiro-box">
+                    <h3>Lançamento de Horas</h3>
+                    
+                    <label>Posto de Serviço:</label>
+                    <select id="fin-input-posto"></select>
+                    
+                    <label>Data da Ocorrência:</label>
+                    <input type="date" id="fin-input-data">
+                    
+                    <label>Quantidade de Horas:</label>
+                    <input type="number" id="fin-input-horas" placeholder="Ex: 2" min="1">
+                    
+                    <label>Valor Desperdiçado (R$):</label>
+                    <input type="number" id="fin-input-valor" placeholder="Ex: 150.00" step="0.01">
+                    
+                    <label>Motivo da Ineficiência (Editável):</label>
+                    <input type="text" id="fin-input-motivo" placeholder="Ex: Colaborador faltou / Atraso na rendição">
+                    
+                    <button class="primary" style="margin-top:10px;" onclick="salvarHoraIneficiente()">Registrar Lançamento</button>
+                </div>
+
+                <!-- Painel de Relatório, Histórico e Gráficos -->
+                <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+                        <div>
+                            <h2 style="margin:0; color:var(--primary); font-size:20px;">Relatório de Horas Ineficientes</h2>
+                            <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Controle financeiro e operacional de quebras de contrato.</p>
+                        </div>
+                        <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarFinanceiroPDF()">📄 Exportar PDF</button>
+                    </div>
+
+                    <!-- Controles de Período Mensal -->
+                    <div class="heatmap-controles" data-html2pdf-ignore="true">
+                        <button class="secondary" onclick="alterarMesFinanceiro(-1)">◀ Mês Anterior</button>
+                        <div class="heatmap-mes-titulo" id="fin-mes-ano-texto">Mês Corrente</div>
+                        <button class="secondary" onclick="alterarMesFinanceiro(1)">Próximo Mês ▶</button>
+                    </div>
+
+                    <!-- Planilha Mensal -->
+                    <table style="margin-bottom:30px;">
+                        <thead>
+                            <tr>
+                                <th>Posto</th>
+                                <th>Data</th>
+                                <th>Motivo da Ineficiência</th>
+                                <th>Horas</th>
+                                <th>Valor Prejuízo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpo-financeiro"></tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3" style="text-align:right;">Impacto Financeiro Total:</td>
+                                <td id="fin-total-horas">0h</td>
+                                <td id="fin-total-valor">R$ 0,00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- Gráfico Comparativo e Analytics -->
+                    <h3 style="color:var(--primary); font-size:16px; margin-bottom:15px; border-top:1px solid #eee; padding-top:20px;">📊 Comparativo de Perdas por Postos</h3>
+                    <div style="background:#f8fafc; padding:15px; border-radius:8px; height:280px;">
+                        <canvas id="chartFinanceiro"></canvas>
                     </div>
                 </div>
 
@@ -246,12 +322,21 @@
         let rondas = [];
         let listaPostos = [];
         let chart = null;
+        let chartFin = null;
         let postoSelecionadoAtual = "";
         let dataFiltroAlvo = new Date();
+        let dataFiltroFinanceiro = new Date();
 
         let paginaAtualPosto = 1;
         const registrosPorPagina = 10;
         let postosFiltrados = [];
+
+        // Banco de dados simulado localmente para o Financeiro (Pode ser integrado ao Firestore futuramente)
+        let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro')) || [
+            { posto: "Zaffari Bourbon", data: "2026-05-10", motivo: "Atraso no rendimento do funcionário", horas: 2, valor: 120.00 },
+            { posto: "Shopping João Pessoa", data: "2026-05-12", motivo: "Falta injustificada de colaborador", horas: 4, valor: 250.00 },
+            { posto: "Zaffari Bourbon", data: "2026-04-15", motivo: "Posto descoberto", horas: 6, valor: 360.00 }
+        ];
 
         auth.onAuthStateChanged(async user => {
             if (user) {
@@ -285,6 +370,7 @@
             document.getElementById('view-'+id).classList.add('active');
             event.currentTarget.classList.add('active');
             document.getElementById('titulo-aba').innerText = id.toUpperCase();
+            if(id === 'financeiro') renderizarFinanceiro();
         }
 
         function ouvirDados() {
@@ -298,7 +384,8 @@
                 });
 
                 filtrarETubularPostos();
-                renderizarSeletorPostosCalor(); // Alimenta o novo menu dropdown
+                renderizarSeletorPostosCalor();
+                atualizarDropdownsFinanceiro();
                 document.getElementById('dash-p-total').innerText = listaPostos.length;
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
             });
@@ -327,7 +414,6 @@
 
         function filtrarETubularPostos() {
             const termoBusca = document.getElementById('busca-posto-input').value.toLowerCase();
-            
             postosFiltrados = listaPostos.filter(p => {
                 const nome = p.nome ? p.nome.toLowerCase() : '';
                 const cidade = p.cidade ? p.cidade.toLowerCase() : '';
@@ -364,7 +450,6 @@
             document.getElementById('sel-user-rel').innerHTML = html;
         }
 
-        // ALIMENTA O NOVO SELECT DOS POSTOS (DENTRO DA VIEW DE MAPA DE CALOR)
         function renderizarSeletorPostosCalor() {
             const select = document.getElementById('sel-posto-calor');
             let html = '<option value="">-- Selecione um Posto da Lista --</option>';
@@ -374,7 +459,15 @@
             select.innerHTML = html;
         }
 
-        // DISPARADO AO MUDAR O DROPDOWN DO POSTO
+        function atualizarDropdownsFinanceiro() {
+            const selectForm = document.getElementById('fin-input-posto');
+            let html = '';
+            listaPostos.forEach(p => {
+                html += `<option value="${p.nome}">${p.nome}</option>`;
+            });
+            selectForm.innerHTML = html;
+        }
+
         function dispararMudancaSeletorPosto() {
             const select = document.getElementById('sel-posto-calor');
             const nomePosto = select.value;
@@ -390,7 +483,7 @@
         }
 
         function alterarMes(fator) {
-            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
+            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + factor);
             if(postoSelecionadoAtual) {
                 desenharCalor(postoSelecionadoAtual);
             } else {
@@ -444,12 +537,136 @@
             }
         }
 
+        // --- LÓGICA EXCLUSIVA DA VIEW FINANCEIRO ---
+
+        function alterarMesFinanceiro(fator) {
+            dataFiltroFinanceiro.setMonth(dataFiltroFinanceiro.getMonth() + fator);
+            renderizarFinanceiro();
+        }
+
+        function salvarHoraIneficiente() {
+            const posto = document.getElementById('fin-input-posto').value;
+            const data = document.getElementById('fin-input-data').value;
+            const horas = parseFloat(document.getElementById('fin-input-horas').value);
+            const valor = parseFloat(document.getElementById('fin-input-valor').value);
+            const motivo = document.getElementById('fin-input-motivo').value;
+
+            if(!data || isNaN(horas) || isNaN(valor) || !motivo) {
+                alert("Por favor, preencha todos os campos do formulário financeiro.");
+                return;
+            }
+
+            registrosFinanceiros.push({ posto, data, horas, valor, motivo });
+            localStorage.setItem('sentinela_financeiro', JSON.stringify(registrosFinanceiros));
+            
+            // Limpa o formulário
+            document.getElementById('fin-input-data').value = "";
+            document.getElementById('fin-input-horas').value = "";
+            document.getElementById('fin-input-valor').value = "";
+            document.getElementById('fin-input-motivo').value = "";
+
+            renderizarFinanceiro();
+            alert("Hora ineficiente cadastrada com sucesso!");
+        }
+
+        function renderizarFinanceiro() {
+            const textoMesAno = dataFiltroFinanceiro.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
+            document.getElementById('fin-mes-ano-texto').innerText = textoMesAno;
+
+            const anoAlvo = dataFiltroFinanceiro.getFullYear();
+            const mesAlvo = dataFiltroFinanceiro.getMonth();
+
+            // Filtra os lançamentos pertencentes ao período selecionado
+            const dadosMes = registrosFinanceiros.filter(reg => {
+                const partes = reg.data.split('-');
+                return parseInt(partes[0]) === anoAlvo && (parseInt(partes[1]) - 1) === mesAlvo;
+            });
+
+            const corpo = document.getElementById('corpo-financeiro');
+            corpo.innerHTML = "";
+            
+            let totalHoras = 0;
+            let totalPrejuizo = 0;
+            const perdasPorPosto = {};
+
+            dadosMes.forEach(reg => {
+                totalHoras += reg.horas;
+                totalPrejuizo += reg.valor;
+                perdasPorPosto[reg.posto] = (perdasPorPosto[reg.posto] || 0) + reg.valor;
+
+                corpo.innerHTML += `
+                    <tr>
+                        <td><strong>${reg.posto}</strong></td>
+                        <td>${reg.data.split('-').reverse().join('/')}</td>
+                        <td>${reg.motivo}</td>
+                        <td>${reg.horas}h</td>
+                        <td>R$ ${reg.valor.toFixed(2).replace('.', ',')}</td>
+                    </tr>`;
+            });
+
+            if(dadosMes.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#7f8c8d;">Nenhuma hora ineficiente registrada neste mês.</td></tr>`;
+            }
+
+            document.getElementById('fin-total-horas').innerText = `${totalHoras}h`;
+            document.getElementById('fin-total-valor').innerText = `R$ ${totalPrejuizo.toFixed(2).replace('.', ',')}`;
+
+            desenharChartFinanceiro(perdasPorPosto);
+        }
+
+        function desenharChartFinanceiro(perdasPorPosto) {
+            const ctx = document.getElementById('chartFinanceiro').getContext('2d');
+            if(chartFin) chartFin.destroy();
+
+            const postosLabels = Object.keys(perdasPorPosto);
+            const valoresData = Object.values(perdasPorPosto);
+
+            chartFin = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: postosLabels,
+                    datasets: [{
+                        label: 'Prejuízo por Posto (R$)',
+                        data: valoresData,
+                        backgroundColor: '#e74c3c',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: value => 'R$ ' + value }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportarFinanceiroPDF() {
+            const elemento = document.getElementById('area-impressao-financeiro');
+            const mesAnoTexto = document.getElementById('fin-mes-ano-texto').innerText.replace(' de ', '_');
+            const nomeArquivo = `Relatorio_Financeiro_Ineficiencias_${mesAnoTexto}.pdf`;
+
+            const opcoes = {
+                margin: 10,
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opcoes).from(elemento).save();
+        }
+
         function exportarMapaParaPDF() {
             if (!postoSelecionadoAtual) {
                 alert("Por favor, selecione um posto antes de gerar o PDF.");
                 return;
             }
-            
             const elemento = document.getElementById('area-impressao-pdf');
             const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
             const nomeArquivo = `Mapa_Calor_${postoSelecionadoAtual.replace(/\s+/g, '_')}_${mesAnoTexto}.pdf`;
