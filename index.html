@@ -79,27 +79,39 @@
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const fs = firebase.firestore(); // Alterado de database para Firestore
+        const fs = firebase.firestore();
 
-        // Lista de e-mails autorizados (Admin e Gerência)
+        // Lista de e-mails autorizados em código rígido
         const usuariosAutorizados = [
             'admin@sentinela.com', 
             'gerencia@sentinela.com',
-            'seu-email@dominio.com' // Altere aqui para o seu e-mail de acesso administrativo
+            'seu-email@dominio.com' // Lembre-se de substituir pelo seu e-mail real se necessário
         ];
 
-        auth.onAuthStateChanged((user) => {
-            if (user && usuariosAutorizados.includes(user.email)) {
-                // Usuário autorizado
-                document.getElementById('secao-login').style.display = 'none';
-                document.getElementById('secao-painel').style.display = 'block';
-                iniciarMonitoramento();
-            } else if (user) {
-                // Logado mas não autorizado
-                alert("Acesso negado. Este painel é restrito à gerência.");
-                auth.signOut();
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                let eAdminPorBanco = false;
+
+                // Validação Avançada: Busca a role do usuário logado diretamente na coleção do Firestore
+                try {
+                    const docUser = await fs.collection("usuarios").doc(user.uid).get();
+                    if (docUser.exists && docUser.data().role === "admin") {
+                        eAdminPorBanco = true;
+                    }
+                } catch (err) {
+                    console.log("Erro ao verificar nível de acesso no banco:", err);
+                }
+
+                // Se o e-mail estiver na lista OU estiver marcado como admin no banco, libera o acesso
+                if (usuariosAutorizados.includes(user.email) || eAdminPorBanco) {
+                    document.getElementById('secao-login').style.display = 'none';
+                    document.getElementById('secao-painel').style.display = 'block';
+                    iniciarMonitoramento();
+                } else {
+                    alert("Acesso negado. Este painel é restrito à gerência.");
+                    auth.signOut();
+                }
             } else {
-                // Deslogado
                 document.getElementById('secao-login').style.display = 'block';
                 document.getElementById('secao-painel').style.display = 'none';
             }
@@ -109,6 +121,7 @@
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
             const erroDiv = document.getElementById('erro-login');
+            erroDiv.innerText = "";
 
             auth.signInWithEmailAndPassword(email, senha).catch((error) => {
                 erroDiv.innerText = "E-mail ou senha incorretos.";
@@ -120,7 +133,6 @@
         }
 
         function iniciarMonitoramento() {
-            // Escuta em Tempo Real na coleção "rondas" do Firestore ordenada pelas mais recentes
             fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
                 const corpoTabela = document.getElementById('corpo-tabela');
                 const statusDiv = document.getElementById('status');
@@ -133,10 +145,11 @@
                     snapshot.forEach((doc) => {
                         const dados = doc.data();
                         
-                        // Adequação dos campos salvos pelo app principal
                         const colaborador = dados.colaborador || 'N/A';
                         const posto = dados.posto || 'N/A';
-                        const dataHora = (dados.data && r.hora) ? `${dados.data} às ${dados.hora}` : (dados.data || dados.hora || 'N/A');
+                        
+                        // Correção aqui: Alterado de 'r.hora' para 'dados.hora' para sanar a quebra do script
+                        const dataHora = (dados.data && dados.hora) ? `${dados.data} às ${dados.hora}` : (dados.data || dados.hora || 'N/A');
                         const motivo = dados.motivo || 'N/A';
                         const km = dados.km || '0';
 
