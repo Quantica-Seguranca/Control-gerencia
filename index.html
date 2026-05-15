@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -110,10 +109,21 @@
             </table>
         </section>
 
-        <!-- POSTOS (CORRIGIDO: LÊ DA COLEÇÃO 'POSTOS') -->
+        <!-- POSTOS (MODIFICADO: APENAS QUANTIDADE, NOME E CIDADE/LOCAL) -->
         <section id="view-postos" class="view-secao">
+            <div class="card-grid" style="margin-bottom: 20px;">
+                <div class="card">
+                    <h3>Total de Postos Registrados</h3>
+                    <div class="valor" id="postos-p-total">0</div>
+                </div>
+            </div>
             <table id="tabela-postos-oficial">
-                <thead><tr><th>Nome do Posto</th><th>Cidade/Local</th><th>Última Visita</th><th>Status</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Nome do Posto</th>
+                        <th>Cidade/Local</th>
+                    </tr>
+                </thead>
                 <tbody id="corpo-postos"></tbody>
             </table>
         </section>
@@ -193,6 +203,7 @@
                 listaPostos = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 atualizarPostos();
                 document.getElementById('dash-p-total').innerText = listaPostos.length;
+                document.getElementById('postos-p-total').innerText = listaPostos.length;
             });
 
             // Escuta RONDAS (Atividade)
@@ -220,10 +231,7 @@
             const corpo = document.getElementById('corpo-postos');
             corpo.innerHTML = "";
             listaPostos.forEach(p => {
-                const ultima = rondas.find(r => r.posto === p.nome);
-                const dataU = ultima ? `${ultima.data} ${ultima.hora}` : "Sem visitas";
-                const status = ultima ? "● Ativo" : "○ Pendente";
-                corpo.innerHTML += `<tr><td>${p.nome}</td><td>${p.cidade || 'N/A'}</td><td>${dataU}</td><td>${status}</td></tr>`;
+                corpo.innerHTML += `<tr><td>${p.nome}</td><td>${p.cidade || 'N/A'}</td></tr>`;
             });
         }
 
@@ -267,5 +275,3 @@
     </script>
 </body>
 </html>
-
-```
