@@ -63,7 +63,7 @@
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
         th { background: var(--secondary); color: white; }
 
-        /* Controles de Tabela (Pesquisa e Paginação) */
+        /* Controles de Tabela */
         .tabela-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; }
         .busca-container { position: relative; flex: 1; max-width: 400px; }
         .busca-container input { margin-bottom: 0; padding-left: 15px; }
@@ -71,33 +71,31 @@
         .paginacao-btn { padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .paginacao-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 
-        /* Heatmap Layout */
-        .heatmap-container-flex { display: flex; gap: 30px; align-items: flex-start; }
-        .posto-lista-box { width: 280px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); max-height: 480px; overflow-y: auto; padding: 10px; }
-        .posto-item-btn { width: 100%; text-align: left; background: none; border: none; padding: 12px 15px; font-size: 14px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; border-left: 3px solid transparent; transition: 0.2s; }
-        .posto-item-btn:hover { background: #f1f5f9; }
-        .posto-item-btn.selected { background: #eff6ff; border-left-color: var(--accent); font-weight: bold; color: var(--accent); }
-
-        .heatmap-calendario-box { flex: 1; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* NOVO LAYOUT DO MAPA DE CALOR: VERTICAL E FLUIDO */
+        .heatmap-wrapper-vertical { display: flex; flex-direction: column; gap: 20px; max-width: 800px; }
+        .seletor-posto-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .seletor-posto-container select { margin-bottom: 0; }
+        
+        .heatmap-calendario-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .heatmap-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; }
         .heatmap-mes-titulo { font-size: 16px; font-weight: bold; color: var(--primary); text-transform: capitalize; }
         
         /* Grid do Mapa de Calor */
-        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 450px; margin-top: 15px; }
-        .heatmap-dia { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #e2e8f0; }
-        .heatmap-dia span { font-size: 9px; font-weight: normal; margin-top: 2px; }
+        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 100%; margin-top: 15px; }
+        .heatmap-dia { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #e2e8f0; }
+        .heatmap-dia span { font-size: 10px; font-weight: normal; margin-top: 2px; }
         
         /* Classes de Intensidade */
         .intensidade-0 { background: var(--calor-0); color: #94a3b8; }
         .intensidade-1 { background: var(--calor-1-3); color: #854d0e; }
-        .intensidade-2 { background: var(--calor-4-7); color: #c2410c; }
-        .intensidade-3 { background: var(--calor-8-12); color: #991b1b; }
+        .intensidade-2 { background: var(--calor-4-7); color: #ffffff; }
+        .intensidade-3 { background: var(--calor-8-12); color: #ffffff; }
         .intensidade-4 { background: var(--calor-13); color: #ffffff; }
 
         /* Legenda */
-        .heatmap-legenda { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 12px; }
-        .legenda-item { display: flex; align-items: center; gap: 5px; }
-        .legenda-cor { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #cbd5e1; }
+        .heatmap-legenda { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 13px; }
+        .legenda-item { display: flex; align-items: center; gap: 6px; }
+        .legenda-cor { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #cbd5e1; }
     </style>
 </head>
 <body>
@@ -158,7 +156,6 @@
                 </div>
             </div>
 
-            <!-- Controles Operacionais da Tabela -->
             <div class="tabela-controles">
                 <div class="busca-container">
                     <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
@@ -171,12 +168,7 @@
             </div>
 
             <table id="tabela-postos-oficial">
-                <thead>
-                    <tr>
-                        <th>Nome do Posto</th>
-                        <th>Cidade/Local</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Nome do Posto</th><th>Cidade/Local</th></tr></thead>
                 <tbody id="corpo-postos"></tbody>
             </table>
         </section>
@@ -191,17 +183,19 @@
             </table>
         </section>
 
-        <!-- CALOR -->
+        <!-- CALOR (MODIFICADO: FLUXO TOP-DOWN COM SELECT EM VEZ DE LISTA VERTICAL) -->
         <section id="view-calor" class="view-secao">
-            <div class="heatmap-container-flex">
+            <div class="heatmap-wrapper-vertical">
                 
-                <!-- Lista de Postos Cadastrados -->
-                <div>
-                    <h3 style="margin-top:0; font-size:14px; color:var(--secondary);">Selecione um Posto:</h3>
-                    <div id="lista-postos-calor" class="posto-lista-box"></div>
+                <!-- Área 1: Controle de Seleção do Posto (Fica no topo) -->
+                <div class="seletor-posto-container" data-html2pdf-ignore="true">
+                    <label for="sel-posto-calor" style="font-size:14px; font-weight:bold; color:var(--secondary); display:block; margin-bottom:8px;">🏢 Selecione o Posto Alvo:</label>
+                    <select id="sel-posto-calor" onchange="dispararMudancaSeletorPosto()">
+                        <option value="">Aguardando carregamento de postos...</option>
+                    </select>
                 </div>
 
-                <!-- Painel de Impressão e Visualização do Mapa -->
+                <!-- Área 2: Painel de Impressão e Visualização do Mapa -->
                 <div class="heatmap-calendario-box" id="area-impressao-pdf">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
                         <div>
@@ -211,14 +205,17 @@
                         <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
                     </div>
 
+                    <!-- Controles de Mês -->
                     <div class="heatmap-controles" data-html2pdf-ignore="true">
                         <button class="secondary" onclick="alterarMes(-1)">◀ Voltar</button>
                         <div class="heatmap-mes-titulo" id="filtro-mes-ano-texto">Mês Corrente</div>
                         <button class="secondary" onclick="alterarMes(1)">Avançar ▶</button>
                     </div>
 
+                    <!-- Grid do Calendário -->
                     <div id="heatmap-container" class="heatmap-grid"></div>
 
+                    <!-- Legenda de Cores -->
                     <div class="heatmap-legenda">
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-0)"></div> 0 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-1-3)"></div> 1 a 3 vis.</div>
@@ -294,7 +291,6 @@
             fs.collection('postos').onSnapshot(snap => {
                 listaPostos = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 
-                // APLICA FILTRO DE ORDEM ALFABÉTICA (A-Z) GLOBALMENTE NOS DADOS ADQUIRIDOS
                 listaPostos.sort((a, b) => {
                     const nomeA = a.nome ? a.nome.toLowerCase() : '';
                     const nomeB = b.nome ? b.nome.toLowerCase() : '';
@@ -302,7 +298,7 @@
                 });
 
                 filtrarETubularPostos();
-                renderizarListaPostosCalor();
+                renderizarSeletorPostosCalor(); // Alimenta o novo menu dropdown
                 document.getElementById('dash-p-total').innerText = listaPostos.length;
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
             });
@@ -368,20 +364,29 @@
             document.getElementById('sel-user-rel').innerHTML = html;
         }
 
-        function renderizarListaPostosCalor() {
-            const container = document.getElementById('lista-postos-calor');
-            container.innerHTML = "";
+        // ALIMENTA O NOVO SELECT DOS POSTOS (DENTRO DA VIEW DE MAPA DE CALOR)
+        function renderizarSeletorPostosCalor() {
+            const select = document.getElementById('sel-posto-calor');
+            let html = '<option value="">-- Selecione um Posto da Lista --</option>';
             listaPostos.forEach(p => {
-                container.innerHTML += `<button class="posto-item-btn" id="btn-posto-${p.id}" onclick="selecionarPostoCalor('${p.nome}', '${p.id}')">🏢 ${p.nome}</button>`;
+                html += `<option value="${p.nome}">🏢 ${p.nome}</option>`;
             });
+            select.innerHTML = html;
         }
 
-        function selecionarPostoCalor(nomePosto, idPosto) {
+        // DISPARADO AO MUDAR O DROPDOWN DO POSTO
+        function dispararMudancaSeletorPosto() {
+            const select = document.getElementById('sel-posto-calor');
+            const nomePosto = select.value;
             postoSelecionadoAtual = nomePosto;
-            document.querySelectorAll('.posto-item-btn').forEach(b => b.classList.remove('selected'));
-            document.getElementById(`btn-posto-${idPosto}`).classList.add('selected');
-            document.getElementById('nome-posto-selecionado').innerText = `🏢 ${nomePosto}`;
-            desenharCalor(nomePosto);
+
+            if(nomePosto) {
+                document.getElementById('nome-posto-selecionado').innerText = nomePosto;
+                desenharCalor(nomePosto);
+            } else {
+                document.getElementById('nome-posto-selecionado').innerText = "Nenhum posto selecionado";
+                document.getElementById('heatmap-container').innerHTML = "";
+            }
         }
 
         function alterarMes(fator) {
@@ -439,7 +444,6 @@
             }
         }
 
-        // Configuração corrigida e ajustada
         function exportarMapaParaPDF() {
             if (!postoSelecionadoAtual) {
                 alert("Por favor, selecione um posto antes de gerar o PDF.");
