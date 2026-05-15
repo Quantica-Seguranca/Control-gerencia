@@ -149,7 +149,7 @@
             </table>
         </section>
 
-        <!-- POSTOS (OTIMIZADO COM BUSCA E PAGINAÇÃO) -->
+        <!-- POSTOS -->
         <section id="view-postos" class="view-secao">
             <div class="card-grid" style="margin-bottom: 20px;">
                 <div class="card">
@@ -252,9 +252,8 @@
         let postoSelecionadoAtual = "";
         let dataFiltroAlvo = new Date();
 
-        // Variáveis de Controle da Paginação da Tabela de Postos
         let paginaAtualPosto = 1;
-        const registrosPorPagina = 10; // Altere este valor para definir o limite por página
+        const registrosPorPagina = 10;
         let postosFiltrados = [];
 
         auth.onAuthStateChanged(async user => {
@@ -294,7 +293,15 @@
         function ouvirDados() {
             fs.collection('postos').onSnapshot(snap => {
                 listaPostos = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                filtrarETubularPostos(); // Inicializa o motor de busca e paginação
+                
+                // APLICA FILTRO DE ORDEM ALFABÉTICA (A-Z) GLOBALMENTE NOS DADOS ADQUIRIDOS
+                listaPostos.sort((a, b) => {
+                    const nomeA = a.nome ? a.nome.toLowerCase() : '';
+                    const nomeB = b.nome ? b.nome.toLowerCase() : '';
+                    return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+                });
+
+                filtrarETubularPostos();
                 renderizarListaPostosCalor();
                 document.getElementById('dash-p-total').innerText = listaPostos.length;
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
@@ -322,32 +329,26 @@
             });
         }
 
-        // MOTOR DE FILTRAGEM E PAGINAÇÃO (EVITA LENTIDÃO COM MUITOS POSTOS)
         function filtrarETubularPostos() {
             const termoBusca = document.getElementById('busca-posto-input').value.toLowerCase();
             
-            // 1. Aplica Filtro de Pesquisa
             postosFiltrados = listaPostos.filter(p => {
                 const nome = p.nome ? p.nome.toLowerCase() : '';
                 const cidade = p.cidade ? p.cidade.toLowerCase() : '';
                 return nome.includes(termoBusca) || cidade.includes(termoBusca);
             });
 
-            // 2. Calcula as Páginas Totais
             const totalPaginas = Math.ceil(postosFiltrados.length / registrosPorPagina) || 1;
             if (paginaAtualPosto > totalPaginas) paginaAtualPosto = totalPaginas;
 
-            // 3. Habilita/Desabilita os Botões Operacionais de Paginação
             document.getElementById('btn-pag-anterior').disabled = (paginaAtualPosto === 1);
             document.getElementById('btn-pag-proxima').disabled = (paginaAtualPosto === totalPaginas);
             document.getElementById('indicador-paginacao').innerText = `Página ${paginaAtualPosto} de ${totalPaginas}`;
 
-            // 4. Recorta o Array para Exibir Apenas os Registros da Página Atual
             const indiceInicio = (paginaAtualPosto - 1) * registrosPorPagina;
             const indiceFim = indiceInicio + registrosPorPagina;
             const postosExibidos = postosFiltrados.slice(indiceInicio, indiceFim);
 
-            // 5. Renderiza a Tabela de Forma Limpa
             const corpo = document.getElementById('corpo-postos');
             corpo.innerHTML = "";
             postosExibidos.forEach(p => {
@@ -438,6 +439,7 @@
             }
         }
 
+        // Configuração corrigida e ajustada
         function exportarMapaParaPDF() {
             if (!postoSelecionadoAtual) {
                 alert("Por favor, selecione um posto antes de gerar o PDF.");
