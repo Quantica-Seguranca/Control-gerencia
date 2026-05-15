@@ -50,6 +50,13 @@
         button.btn-pdf { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
         button.btn-pdf:hover { background: #1d4ed8; }
 
+        /* Botões de ação da tabela */
+        .btn-acao { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; margin-right: 4px; }
+        .btn-editar { background: #3498db; color: white; }
+        .btn-editar:hover { background: #2980b9; }
+        .btn-excluir { background: var(--danger); color: white; }
+        .btn-excluir:hover { background: #c0392b; }
+
         .view-secao { display: none; }
         .view-secao.active { display: block; }
 
@@ -98,12 +105,14 @@
         .legenda-item { display: flex; align-items: center; gap: 6px; }
         .legenda-cor { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #cbd5e1; }
 
-        /* ESTILOS ESPECÍFICOS - VIEW FINANCEIRO */
-        .financeiro-grid-layout { display: grid; grid-template-columns: 320px 1fr; gap: 25px; align-items: flex-start; }
+        /* ESTILOS ESPECÍFICOS - VIEW FINANCEIRO RESTRUTURADO */
+        .financeiro-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .coluna-esquerda-financeiro { display: flex; flex-direction: column; gap: 20px; }
         .form-financeiro-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .form-financeiro-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .form-financeiro-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
         .financeiro-painel-relatorio { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .grafico-financeiro-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -230,33 +239,48 @@
             </div>
         </section>
 
-        <!-- FINANCEIRO (NOVA VIEW REGISTRO DE HORAS INEFICIENTES) -->
+        <!-- FINANCEIRO (RESTRUTURADO COM GRÁFICO À ESQUERDA E OPERAÇÕES DE EDIÇÃO/EXCLUSÃO) -->
         <section id="view-financeiro" class="view-secao">
             <div class="financeiro-grid-layout">
                 
-                <!-- Formulário de Lançamento de Hora Ineficiente -->
-                <div class="form-financeiro-box">
-                    <h3>Lançamento de Horas</h3>
-                    
-                    <label>Posto de Serviço:</label>
-                    <select id="fin-input-posto"></select>
-                    
-                    <label>Data da Ocorrência:</label>
-                    <input type="date" id="fin-input-data">
-                    
-                    <label>Quantidade de Horas:</label>
-                    <input type="number" id="fin-input-horas" placeholder="Ex: 2" min="1">
-                    
-                    <label>Valor Desperdiçado (R$):</label>
-                    <input type="number" id="fin-input-valor" placeholder="Ex: 150.00" step="0.01">
-                    
-                    <label>Motivo da Ineficiência (Editável):</label>
-                    <input type="text" id="fin-input-motivo" placeholder="Ex: Colaborador faltou / Atraso na rendição">
-                    
-                    <button class="primary" style="margin-top:10px;" onclick="salvarHoraIneficiente()">Registrar Lançamento</button>
+                <!-- Coluna da Esquerda: Formulário de Lançamento + Gráfico Comparativo -->
+                <div class="coluna-esquerda-financeiro">
+                    <!-- Formulário -->
+                    <div class="form-financeiro-box">
+                        <h3 id="fin-titulo-formulario">Lançamento de Horas</h3>
+                        <input type="hidden" id="fin-input-index" value=""> <!-- Campo invisível para controle de edição -->
+                        
+                        <label>Posto de Serviço:</label>
+                        <select id="fin-input-posto"></select>
+                        
+                        <label>Data da Ocorrência:</label>
+                        <input type="date" id="fin-input-data">
+                        
+                        <label>Quantidade de Horas:</label>
+                        <input type="number" id="fin-input-horas" placeholder="Ex: 2" min="1">
+                        
+                        <label>Valor Desperdiçado (R$):</label>
+                        <input type="number" id="fin-input-valor" placeholder="Ex: 150.00" step="0.01">
+                        
+                        <label>Motivo da Ineficiência (Editável):</label>
+                        <input type="text" id="fin-input-motivo" placeholder="Ex: Faltou / Atraso na rendição">
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="primary" style="margin-top:10px; flex:1;" id="fin-btn-salvar" onclick="salvarHoraIneficiente()">Registrar</button>
+                            <button class="secondary" style="margin-top:10px; display:none;" id="fin-btn-cancelar" onclick="cancelarEdicaoFinanceira()">Cancelar</button>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Realocado para Baixo do Lançamento -->
+                    <div class="grafico-financeiro-box" data-html2pdf-ignore="true">
+                        <h3 style="margin-top:0; color:var(--primary); font-size:14px; text-transform:uppercase;">📊 Perdas por Postos</h3>
+                        <div style="height:220px; position:relative;">
+                            <canvas id="chartFinanceiro"></canvas>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Painel de Relatório, Histórico e Gráficos -->
+                <!-- Coluna da Direita: Planilha Mensal Completa -->
                 <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
                         <div>
@@ -273,8 +297,8 @@
                         <button class="secondary" onclick="alterarMesFinanceiro(1)">Próximo Mês ▶</button>
                     </div>
 
-                    <!-- Planilha Mensal -->
-                    <table style="margin-bottom:30px;">
+                    <!-- Planilha Mensal com Coluna de Ações -->
+                    <table>
                         <thead>
                             <tr>
                                 <th>Posto</th>
@@ -282,6 +306,7 @@
                                 <th>Motivo da Ineficiência</th>
                                 <th>Horas</th>
                                 <th>Valor Prejuízo</th>
+                                <th data-html2pdf-ignore="true">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="corpo-financeiro"></tbody>
@@ -290,15 +315,10 @@
                                 <td colspan="3" style="text-align:right;">Impacto Financeiro Total:</td>
                                 <td id="fin-total-horas">0h</td>
                                 <td id="fin-total-valor">R$ 0,00</td>
+                                <td data-html2pdf-ignore="true"></td>
                             </tr>
                         </tfoot>
                     </table>
-
-                    <!-- Gráfico Comparativo e Analytics -->
-                    <h3 style="color:var(--primary); font-size:16px; margin-bottom:15px; border-top:1px solid #eee; padding-top:20px;">📊 Comparativo de Perdas por Postos</h3>
-                    <div style="background:#f8fafc; padding:15px; border-radius:8px; height:280px;">
-                        <canvas id="chartFinanceiro"></canvas>
-                    </div>
                 </div>
 
             </div>
@@ -331,11 +351,10 @@
         const registrosPorPagina = 10;
         let postosFiltrados = [];
 
-        // Banco de dados simulado localmente para o Financeiro (Pode ser integrado ao Firestore futuramente)
+        // Banco de dados simulado localmente para o Financeiro
         let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro')) || [
             { posto: "Zaffari Bourbon", data: "2026-05-10", motivo: "Atraso no rendimento do funcionário", horas: 2, valor: 120.00 },
-            { posto: "Shopping João Pessoa", data: "2026-05-12", motivo: "Falta injustificada de colaborador", horas: 4, valor: 250.00 },
-            { posto: "Zaffari Bourbon", data: "2026-04-15", motivo: "Posto descoberto", horas: 6, valor: 360.00 }
+            { posto: "Shopping João Pessoa", data: "2026-05-12", motivo: "Falta injustificada de colaborador", horas: 4, valor: 250.00 }
         ];
 
         auth.onAuthStateChanged(async user => {
@@ -370,7 +389,10 @@
             document.getElementById('view-'+id).classList.add('active');
             event.currentTarget.classList.add('active');
             document.getElementById('titulo-aba').innerText = id.toUpperCase();
-            if(id === 'financeiro') renderizarFinanceiro();
+            if(id === 'financeiro') {
+                cancelarEdicaoFinanceira();
+                renderizarFinanceiro();
+            }
         }
 
         function ouvirDados() {
@@ -483,7 +505,7 @@
         }
 
         function alterarMes(fator) {
-            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + factor);
+            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
             if(postoSelecionadoAtual) {
                 desenharCalor(postoSelecionadoAtual);
             } else {
@@ -537,14 +559,16 @@
             }
         }
 
-        // --- LÓGICA EXCLUSIVA DA VIEW FINANCEIRO ---
+        // --- MOTOR LOGICO DA VIEW FINANCEIRO (ATUALIZADO) ---
 
         function alterarMesFinanceiro(fator) {
             dataFiltroFinanceiro.setMonth(dataFiltroFinanceiro.getMonth() + fator);
             renderizarFinanceiro();
         }
 
+        // Salva ou atualiza um lançamento existente
         function salvarHoraIneficiente() {
+            const index = document.getElementById('fin-input-index').value;
             const posto = document.getElementById('fin-input-posto').value;
             const data = document.getElementById('fin-input-data').value;
             const horas = parseFloat(document.getElementById('fin-input-horas').value);
@@ -552,21 +576,66 @@
             const motivo = document.getElementById('fin-input-motivo').value;
 
             if(!data || isNaN(horas) || isNaN(valor) || !motivo) {
-                alert("Por favor, preencha todos os campos do formulário financeiro.");
+                alert("Por favor, preencha todos os campos do formulário.");
                 return;
             }
 
-            registrosFinanceiros.push({ posto, data, horas, valor, motivo });
+            const novoRegistro = { posto, data, horas, valor, motivo };
+
+            if(index === "") {
+                // Modo: Novo Registro
+                registrosFinanceiros.push(novoRegistro);
+            } else {
+                // Modo: Edição de Registro Existente
+                registrosFinanceiros[parseInt(index)] = novoRegistro;
+                cancelarEdicaoFinanceira(); // Reseta os botões e títulos
+            }
+
             localStorage.setItem('sentinela_financeiro', JSON.stringify(registrosFinanceiros));
+            limparFormularioFinanceiro();
+            renderizarFinanceiro();
+        }
+
+        // Preenche o formulário com os dados da linha selecionada para alteração
+        function prepararEdicaoFinanceira(globalIndex) {
+            const reg = registrosFinanceiros[globalIndex];
             
-            // Limpa o formulário
+            document.getElementById('fin-input-index').value = globalIndex;
+            document.getElementById('fin-input-posto').value = reg.posto;
+            document.getElementById('fin-input-data').value = reg.data;
+            document.getElementById('fin-input-horas').value = reg.horas;
+            document.getElementById('fin-input-valor').value = reg.valor;
+            document.getElementById('fin-input-motivo').value = reg.motivo;
+
+            // Modifica o aspecto visual do formulário para o modo de Edição
+            document.getElementById('fin-titulo-formulario').innerText = "✏️ Alterar Valores";
+            document.getElementById('fin-btn-salvar').innerText = "Salvar Alterações";
+            document.getElementById('fin-btn-cancelar').style.display = "block";
+        }
+
+        function cancelarEdicaoFinanceira() {
+            limparFormularioFinanceiro();
+            document.getElementById('fin-input-index').value = "";
+            document.getElementById('fin-titulo-formulario').innerText = "Lançamento de Horas";
+            document.getElementById('fin-btn-salvar').innerText = "Registrar";
+            document.getElementById('fin-btn-cancelar').style.display = "none";
+        }
+
+        // Exclui o posto selecionado do array e atualiza o gráfico
+        function excluirRegistroFinanceiro(globalIndex) {
+            if(confirm("Deseja realmente excluir permanentemente este lançamento financeiro?")) {
+                registrosFinanceiros.splice(globalIndex, 1);
+                localStorage.setItem('sentinela_financeiro', JSON.stringify(registrosFinanceiros));
+                cancelarEdicaoFinanceira();
+                renderizarFinanceiro();
+            }
+        }
+
+        function limparFormularioFinanceiro() {
             document.getElementById('fin-input-data').value = "";
             document.getElementById('fin-input-horas').value = "";
             document.getElementById('fin-input-valor').value = "";
             document.getElementById('fin-input-motivo').value = "";
-
-            renderizarFinanceiro();
-            alert("Hora ineficiente cadastrada com sucesso!");
         }
 
         function renderizarFinanceiro() {
@@ -576,12 +645,6 @@
             const anoAlvo = dataFiltroFinanceiro.getFullYear();
             const mesAlvo = dataFiltroFinanceiro.getMonth();
 
-            // Filtra os lançamentos pertencentes ao período selecionado
-            const dadosMes = registrosFinanceiros.filter(reg => {
-                const partes = reg.data.split('-');
-                return parseInt(partes[0]) === anoAlvo && (parseInt(partes[1]) - 1) === mesAlvo;
-            });
-
             const corpo = document.getElementById('corpo-financeiro');
             corpo.innerHTML = "";
             
@@ -589,23 +652,35 @@
             let totalPrejuizo = 0;
             const perdasPorPosto = {};
 
-            dadosMes.forEach(reg => {
-                totalHoras += reg.horas;
-                totalPrejuizo += reg.valor;
-                perdasPorPosto[reg.posto] = (perdasPorPosto[reg.posto] || 0) + reg.valor;
+            // Mapeia mantendo o índice global estável para as funções de Edição/Exclusão
+            registrosFinanceiros.forEach((reg, globalIndex) => {
+                const partes = reg.data.split('-');
+                const anoReg = parseInt(partes[0]);
+                const mesReg = parseInt(partes[1]) - 1;
 
-                corpo.innerHTML += `
-                    <tr>
-                        <td><strong>${reg.posto}</strong></td>
-                        <td>${reg.data.split('-').reverse().join('/')}</td>
-                        <td>${reg.motivo}</td>
-                        <td>${reg.horas}h</td>
-                        <td>R$ ${reg.valor.toFixed(2).replace('.', ',')}</td>
-                    </tr>`;
+                // Renderiza na tabela se corresponder ao mês/ano selecionado no controle temporal
+                if(anoReg === anoAlvo && mesReg === mesAlvo) {
+                    totalHoras += reg.horas;
+                    totalPrejuizo += reg.valor;
+                    perdasPorPosto[reg.posto] = (perdasPorPosto[reg.posto] || 0) + reg.valor;
+
+                    corpo.innerHTML += `
+                        <tr>
+                            <td><strong>${reg.posto}</strong></td>
+                            <td>${reg.data.split('-').reverse().join('/')}</td>
+                            <td>${reg.motivo}</td>
+                            <td>${reg.horas}h</td>
+                            <td>R$ ${reg.valor.toFixed(2).replace('.', ',')}</td>
+                            <td data-html2pdf-ignore="true">
+                                <button class="btn-acao btn-editar" onclick="prepararEdicaoFinanceira(${globalIndex})">Alterar</button>
+                                <button class="btn-acao btn-excluir" onclick="excluirRegistroFinanceiro(${globalIndex})">Excluir</button>
+                            </td>
+                        </tr>`;
+                }
             });
 
-            if(dadosMes.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#7f8c8d;">Nenhuma hora ineficiente registrada neste mês.</td></tr>`;
+            if(corpo.innerHTML === "") {
+                corpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">Nenhum registro encontrado para este mês.</td></tr>`;
             }
 
             document.getElementById('fin-total-horas').innerText = `${totalHoras}h`;
@@ -626,9 +701,9 @@
                 data: {
                     labels: postosLabels,
                     datasets: [{
-                        label: 'Prejuízo por Posto (R$)',
+                        label: 'Prejuízo (R$)',
                         data: valoresData,
-                        backgroundColor: '#e74c3c',
+                        backgroundColor: '#ef4444',
                         borderWidth: 1,
                         borderRadius: 4
                     }]
