@@ -22,12 +22,11 @@
             --bg: #f4f7f6;
             
             /* Cores Ajustadas Manualmente */
---calor-0: #f1f5f9;    /* Mantém o cinza claro para 0 visitas */
---calor-1-3: #eab308;  /* Amarelo mais forte e visível (Tom Ouro/Girassol) */
---calor-4-7: #f97316;  /* Laranja bem forte, vivo e destacado */
---calor-8-12: #ef4444; /* Vermelho padrão (Alerta vivo, substituindo o fraco) */
---calor-13: #991b1b;   /* Mantém o vermelho escuro (Operação crítica) */
-
+            --calor-0: #f1f5f9;
+            --calor-1-3: #eab308;
+            --calor-4-7: #f97316;
+            --calor-8-12: #ef4444;
+            --calor-13: #991b1b;
         }
 
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; display: flex; min-height: 100vh; }
@@ -64,6 +63,14 @@
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
         th { background: var(--secondary); color: white; }
 
+        /* Controles de Tabela (Pesquisa e Paginação) */
+        .tabela-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; }
+        .busca-container { position: relative; flex: 1; max-width: 400px; }
+        .busca-container input { margin-bottom: 0; padding-left: 15px; }
+        .paginacao-container { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--secondary); }
+        .paginacao-btn { padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .paginacao-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+
         /* Heatmap Layout */
         .heatmap-container-flex { display: flex; gap: 30px; align-items: flex-start; }
         .posto-lista-box { width: 280px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); max-height: 480px; overflow-y: auto; padding: 10px; }
@@ -80,7 +87,7 @@
         .heatmap-dia { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #e2e8f0; }
         .heatmap-dia span { font-size: 9px; font-weight: normal; margin-top: 2px; }
         
-        /* Classes de Intensidade com as Novas Cores */
+        /* Classes de Intensidade */
         .intensidade-0 { background: var(--calor-0); color: #94a3b8; }
         .intensidade-1 { background: var(--calor-1-3); color: #854d0e; }
         .intensidade-2 { background: var(--calor-4-7); color: #c2410c; }
@@ -142,7 +149,7 @@
             </table>
         </section>
 
-        <!-- POSTOS -->
+        <!-- POSTOS (OTIMIZADO COM BUSCA E PAGINAÇÃO) -->
         <section id="view-postos" class="view-secao">
             <div class="card-grid" style="margin-bottom: 20px;">
                 <div class="card">
@@ -150,6 +157,19 @@
                     <div class="valor" id="postos-p-total">0</div>
                 </div>
             </div>
+
+            <!-- Controles Operacionais da Tabela -->
+            <div class="tabela-controles">
+                <div class="busca-container">
+                    <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
+                </div>
+                <div class="paginacao-container">
+                    <button class="paginacao-btn" id="btn-pag-anterior" onclick="mudarPaginaPosto(-1)">◀</button>
+                    <span id="indicador-paginacao">Página 1 de 1</span>
+                    <button class="paginacao-btn" id="btn-pag-proxima" onclick="mudarPaginaPosto(1)">▶</button>
+                </div>
+            </div>
+
             <table id="tabela-postos-oficial">
                 <thead>
                     <tr>
@@ -188,21 +208,17 @@
                             <h3 id="nome-posto-selecionado" style="margin:0; color:var(--primary);">Nenhum posto selecionado</h3>
                             <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Frequência de auditoria interna por período selecionado.</p>
                         </div>
-                        <!-- Botão de PDF -->
                         <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
                     </div>
 
-                    <!-- Controles de Navegação de Meses -->
                     <div class="heatmap-controles" data-html2pdf-ignore="true">
                         <button class="secondary" onclick="alterarMes(-1)">◀ Voltar</button>
                         <div class="heatmap-mes-titulo" id="filtro-mes-ano-texto">Mês Corrente</div>
                         <button class="secondary" onclick="alterarMes(1)">Avançar ▶</button>
                     </div>
 
-                    <!-- O Grid do Calendário -->
                     <div id="heatmap-container" class="heatmap-grid"></div>
 
-                    <!-- Legenda de Cores -->
                     <div class="heatmap-legenda">
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-0)"></div> 0 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-1-3)"></div> 1 a 3 vis.</div>
@@ -234,9 +250,12 @@
         let listaPostos = [];
         let chart = null;
         let postoSelecionadoAtual = "";
-        
-        // Inicializa a navegação com o mês e ano correntes
         let dataFiltroAlvo = new Date();
+
+        // Variáveis de Controle da Paginação da Tabela de Postos
+        let paginaAtualPosto = 1;
+        const registrosPorPagina = 10; // Altere este valor para definir o limite por página
+        let postosFiltrados = [];
 
         auth.onAuthStateChanged(async user => {
             if (user) {
@@ -275,7 +294,7 @@
         function ouvirDados() {
             fs.collection('postos').onSnapshot(snap => {
                 listaPostos = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                atualizarPostos();
+                filtrarETubularPostos(); // Inicializa o motor de busca e paginação
                 renderizarListaPostosCalor();
                 document.getElementById('dash-p-total').innerText = listaPostos.length;
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
@@ -296,7 +315,6 @@
                 document.getElementById('dash-km-total').innerText = kmTotal.toFixed(1);
                 
                 atualizarFiltros();
-                atualizarPostos();
                 desenharChart();
                 if(postoSelecionadoAtual) {
                     desenharCalor(postoSelecionadoAtual);
@@ -304,12 +322,42 @@
             });
         }
 
-        function atualizarPostos() {
+        // MOTOR DE FILTRAGEM E PAGINAÇÃO (EVITA LENTIDÃO COM MUITOS POSTOS)
+        function filtrarETubularPostos() {
+            const termoBusca = document.getElementById('busca-posto-input').value.toLowerCase();
+            
+            // 1. Aplica Filtro de Pesquisa
+            postosFiltrados = listaPostos.filter(p => {
+                const nome = p.nome ? p.nome.toLowerCase() : '';
+                const cidade = p.cidade ? p.cidade.toLowerCase() : '';
+                return nome.includes(termoBusca) || cidade.includes(termoBusca);
+            });
+
+            // 2. Calcula as Páginas Totais
+            const totalPaginas = Math.ceil(postosFiltrados.length / registrosPorPagina) || 1;
+            if (paginaAtualPosto > totalPaginas) paginaAtualPosto = totalPaginas;
+
+            // 3. Habilita/Desabilita os Botões Operacionais de Paginação
+            document.getElementById('btn-pag-anterior').disabled = (paginaAtualPosto === 1);
+            document.getElementById('btn-pag-proxima').disabled = (paginaAtualPosto === totalPaginas);
+            document.getElementById('indicador-paginacao').innerText = `Página ${paginaAtualPosto} de ${totalPaginas}`;
+
+            // 4. Recorta o Array para Exibir Apenas os Registros da Página Atual
+            const indiceInicio = (paginaAtualPosto - 1) * registrosPorPagina;
+            const indiceFim = indiceInicio + registrosPorPagina;
+            const postosExibidos = postosFiltrados.slice(indiceInicio, indiceFim);
+
+            // 5. Renderiza a Tabela de Forma Limpa
             const corpo = document.getElementById('corpo-postos');
             corpo.innerHTML = "";
-            listaPostos.forEach(p => {
+            postosExibidos.forEach(p => {
                 corpo.innerHTML += `<tr><td>${p.nome}</td><td>${p.cidade || 'N/A'}</td></tr>`;
             });
+        }
+
+        function mudarPaginaPosto(direcao) {
+            paginaAtualPosto += direcao;
+            filtrarETubularPostos();
         }
 
         function atualizarFiltros() {
@@ -335,7 +383,6 @@
             desenharCalor(nomePosto);
         }
 
-        // Função de avanço e retrocesso dos meses
         function alterarMes(fator) {
             dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
             if(postoSelecionadoAtual) {
@@ -356,22 +403,16 @@
             container.innerHTML = "";
             
             const anoAlvo = dataFiltroAlvo.getFullYear();
-            const mesAlvo = dataFiltroAlvo.getMonth(); // 0 a 11
+            const mesAlvo = dataFiltroAlvo.getMonth();
 
-            // Calcula dinamicamente quantos dias tem o mês selecionado
             const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
-
             const freq = {};
             
-            // Filtra as rondas por posto, ano e mês alvo
             rondas.filter(r => {
                 if (r.posto !== nomePosto) return false;
-                
-                // Trata formatos de data AAAA-MM-DD ou DD/MM/AAAA
                 const partes = r.data.includes('-') ? r.data.split('-') : r.data.split('/');
                 const anoRonda = parseInt(partes[0].length === 4 ? partes[0] : partes[2]);
-                const mesRonda = parseInt(partes[0].length === 4 ? partes[1] : partes[1]) - 1; // Ajusta base 0
-                
+                const mesRonda = parseInt(partes[0].length === 4 ? partes[1] : partes[1]) - 1;
                 return anoRonda === anoAlvo && mesRonda === mesAlvo;
             }).forEach(r => {
                 const partes = r.data.includes('-') ? r.data.split('-') : r.data.split('/');
@@ -379,7 +420,6 @@
                 freq[dia] = (freq[dia] || 0) + 1;
             });
 
-            // Constrói o grid com a nova escala de criticidade de cores solicitada
             for(let i = 1; i <= totalDiasNoMes; i++) {
                 let n = 0;
                 const v = freq[i] || 0;
@@ -398,7 +438,6 @@
             }
         }
 
-        // Função para exportação do Mapa de Calor em PDF profissional
         function exportarMapaParaPDF() {
             if (!postoSelecionadoAtual) {
                 alert("Por favor, selecione um posto antes de gerar o PDF.");
@@ -417,7 +456,7 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opces).from(elemento).save();
+            html2pdf().set(opcoes).from(elemento).save();
         }
 
         function desenharChart() {
