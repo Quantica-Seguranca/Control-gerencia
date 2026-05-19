@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Biblioteca para geração do PDF do Mapa de Calor e Financeiro -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -19,135 +20,312 @@
             --danger: #e74c3c;
             --accent: #2563eb;
             --bg: #f4f7f6;
-            --calor-0: #f3f4f6;
-            --calor-1: #fef3c7;
-            --calor-2: #fcd34d;
-            --calor-3: #fbbf24;
-            --calor-4: #f59e0b;
-            --calor-max: #d97706;
+            
+            /* Cores Ajustadas Manualmente */
+            --calor-0: #f1f5f9;
+            --calor-1-3: #eab308;
+            --calor-4-7: #f97316;
+            --calor-8-12: #ef4444;
+            --calor-13: #991b1b;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: var(--bg); color: var(--primary); display: flex; min-height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        nav { width: 260px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 100; }
+        nav h2 { font-size: 18px; text-align: center; border-bottom: 1px solid #4f5d73; padding-bottom: 15px; margin-bottom: 20px; }
+        .nav-btn { background: none; border: none; color: #bdc3c7; padding: 12px; text-align: left; cursor: pointer; width: 100%; border-radius: 6px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-btn:hover, .nav-btn.active { background: var(--secondary); color: white; }
+        .btn-logout { background: var(--danger); color: white; margin-top: auto; text-align: center; }
 
-        #secao-login { width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--primary); }
-        .login-card { background: white; padding: 40px; border-radius: 10px; width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; outline: none; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button.primary { background: var(--accent); color: white; }
-        button.primary:hover { background: #1d4ed8; }
+        /* Main Content */
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        #secao-login { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button.primary { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        button.secondary { background: #e2e8f0; color: var(--primary); border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        button.secondary:hover { background: #cbd5e1; }
+        button.btn-pdf { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+        button.btn-pdf:hover { background: #1d4ed8; }
 
-        #nav-lateral { width: 260px; background: var(--primary); color: white; flex-direction: column; padding: 20px; display: none; }
-        .btn-nav { background: transparent; color: #ecf0f1; text-align: left; padding: 15px; margin: 5px 0; display: flex; align-items: center; gap: 10px; font-size: 14px; border: none; cursor: pointer; width: 100%; }
-        .btn-nav:hover { background: var(--secondary); }
-        .btn-nav.active { background: var(--accent); }
+        /* Botões de ação da tabela */
+        .btn-acao { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; margin-right: 4px; }
+        .btn-editar { background: #3498db; color: white; }
+        .btn-editar:hover { background: #2980b9; }
+        .btn-excluir { background: var(--danger); color: white; }
+        .btn-excluir:hover { background: #c0392b; }
 
-        #conteudo-painel { flex: 1; padding: 30px; display: none; overflow-y: auto; }
-        .view { display: none; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .view-secao { display: none; }
+        .view-secao.active { display: block; }
 
-        .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f4f7f6; padding-bottom: 15px; }
-        .card-title { font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        /* Cards & Tables */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
+        .card h3 { margin: 0; font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+        .card .valor { font-size: 24px; font-weight: bold; margin-top: 5px; }
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 15px; }
-        .day-header { text-align: center; font-weight: bold; font-size: 12px; color: #64748b; padding-bottom: 10px; }
-        .day-cell { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; position: relative; transition: transform 0.2s; cursor: help; }
-        .day-cell:hover { transform: scale(1.05); z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .day-cell .day-num { font-weight: bold; }
-        .day-cell .visit-count { font-size: 10px; margin-top: 4px; opacity: 0.8; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: var(--secondary); color: white; }
+        tr.total-row { background: #f8fafc; font-weight: bold; font-size: 16px; border-top: 2px solid #cbd5e1; }
 
+        /* Controles de Tabela */
+        .tabela-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; }
+        .busca-container { position: relative; flex: 1; max-width: 400px; }
+        .busca-container input { margin-bottom: 0; padding-left: 15px; }
+        .paginacao-container { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--secondary); }
+        .paginacao-btn { padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .paginacao-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+
+        /* Layout do Mapa de Calor */
+        .heatmap-wrapper-vertical { display: flex; flex-direction: column; gap: 20px; max-width: 800px; }
+        .seletor-posto-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .seletor-posto-container select { margin-bottom: 0; }
+        
+        .heatmap-calendario-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .heatmap-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; }
+        .heatmap-mes-titulo { font-size: 16px; font-weight: bold; color: var(--primary); text-transform: capitalize; }
+        
+        /* Grid do Mapa de Calor */
+        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 100%; margin-top: 15px; }
+        .heatmap-dia { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #e2e8f0; }
+        .heatmap-dia span { font-size: 10px; font-weight: normal; margin-top: 2px; }
+        
+        /* Classes de Intensidade */
         .intensidade-0 { background: var(--calor-0); color: #94a3b8; }
-        .intensidade-1 { background: var(--calor-1); color: #92400e; }
-        .intensidade-2 { background: var(--calor-2); color: #92400e; }
-        .intensidade-3 { background: var(--calor-3); color: #92400e; }
-        .intensidade-4 { background: var(--calor-4); color: white; }
-        .intensidade-max { background: var(--calor-max); color: white; }
+        .intensidade-1 { background: var(--calor-1-3); color: #854d0e; }
+        .intensidade-2 { background: var(--calor-4-7); color: #ffffff; }
+        .intensidade-3 { background: var(--calor-8-12); color: #ffffff; }
+        .intensidade-4 { background: var(--calor-13); color: #ffffff; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
-        th { background: #f8fafc; color: #64748b; font-size: 13px; text-transform: uppercase; }
+        /* Legenda */
+        .heatmap-legenda { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 13px; }
+        .legenda-item { display: flex; align-items: center; gap: 6px; }
+        .legenda-cor { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #cbd5e1; }
 
-        .legenda-calor { display: flex; gap: 15px; margin-top: 20px; font-size: 12px; align-items: center; background: #fff; padding: 10px; border-radius: 5px; }
-        .legenda-item { display: flex; align-items: center; gap: 5px; }
-        .box-cor { width: 15px; height: 15px; border-radius: 3px; }
+        /* ESTILOS ESPECÍFICOS - VIEW FINANCEIRO RESTRUTURADO */
+        .financeiro-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .coluna-esquerda-financeiro { display: flex; flex-direction: column; gap: 20px; }
+        .form-financeiro-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-financeiro-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-financeiro-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .financeiro-painel-relatorio { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .grafico-financeiro-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
     <div id="secao-login">
-        <div class="login-card">
-            <h2 style="text-align:center; margin-bottom:20px;">Acesso Gerencial</h2>
+        <div class="login-box">
+            <h2>Sentinela Ops</h2>
+            <p>Painel de Gerência</p>
             <input type="email" id="email" placeholder="E-mail">
             <input type="password" id="senha" placeholder="Senha">
-            <button class="primary" onclick="fazerLogin()">Entrar no Sistema</button>
+            <button class="primary" onclick="fazerLogin()">Acessar</button>
+            <p id="erro-login" style="color:red; font-size:12px; margin-top:10px;"></p>
         </div>
     </div>
 
-    <nav id="nav-lateral">
-        <div style="text-align:center; padding:20px 0; border-bottom:1px solid #3e4f5f; margin-bottom:20px;">
-            <h3 style="font-size: 16px;">SENTINELA OPS</h3>
-        </div>
-        <button class="btn-nav active" onclick="mostrarView('view-calor')">🔥 Mapa de Calor</button>
-        <button class="btn-nav" onclick="mostrarView('view-financeiro')">💰 Financeiro</button>
-        <button class="btn-nav" onclick="mostrarView('view-rondas')">📋 Log de Rondas</button>
-        <button class="btn-nav" onclick="auth.signOut()" style="margin-top:auto; color: #f87171;">🚪 Sair</button>
+    <nav id="nav-lateral" style="display:none;">
+        <h2>GERÊNCIA</h2>
+        <button class="nav-btn active" onclick="alternarVisao('dashboard')">📊 Dashboard</button>
+        <button class="nav-btn" onclick="alternarVisao('rondas')">📋 Rondas</button>
+        <button class="nav-btn" onclick="alternarVisao('postos')">🏢 Postos</button>
+        <button class="nav-btn" onclick="alternarVisao('relatorios')">👤 Relatórios</button>
+        <button class="nav-btn" onclick="alternarVisao('calor')">🔥 Mapa de Calor</button>
+        <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
+        <button class="nav-btn btn-logout" onclick="fazerLogout()">Sair</button>
     </nav>
 
-    <main id="conteudo-painel">
-        <section id="view-calor" class="view" style="display:none;">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🔥 Mapa de Calor de Visitas</h2>
-                    <button onclick="gerarPDFCalor()" class="primary" style="width:auto; padding:8px 15px;">📥 Exportar PDF</button>
+    <div class="main" id="conteudo-painel" style="display:none;">
+        <header style="margin-bottom:30px;">
+            <h1 id="titulo-aba">Dashboard</h1>
+            <small id="status-fb">Conectado ao Firestore</small>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section id="view-dashboard" class="view-secao active">
+            <div class="card-grid">
+                <div class="card"><h3>Rondas (Total)</h3><div class="valor" id="dash-v-total">0</div></div>
+                <div class="card"><h3>Postos Ativos</h3><div class="valor" id="dash-p-total">0</div></div>
+                <div class="card"><h3>KM Total</h3><div class="valor" id="dash-km-total">0</div></div>
+            </div>
+            <div style="background:white; padding:20px; border-radius:8px; height:300px;">
+                <canvas id="chartAtividade"></canvas>
+            </div>
+        </section>
+
+        <!-- RONDAS -->
+        <section id="view-rondas" class="view-secao">
+            <table>
+                <thead><tr><th>Colaborador</th><th>Posto</th><th>Data/Hora</th><th>Motivo</th><th>KM</th></tr></thead>
+                <tbody id="corpo-rondas"></tbody>
+            </table>
+        </section>
+
+        <!-- POSTOS -->
+        <section id="view-postos" class="view-secao">
+            <div class="card-grid" style="margin-bottom: 20px;">
+                <div class="card">
+                    <h3>Total de Postos Registrados</h3>
+                    <div class="valor" id="postos-p-total">0</div>
                 </div>
-                
-                <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end;">
-                    <div style="flex: 1;">
-                        <label style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px;">Posto:</label>
-                        <select id="sel-posto-calor" onchange="atualizarMapaCalor()" style="width:100%; padding:10px; border-radius:5px; border:1px solid #ddd;"></select>
-                    </div>
-                    <select id="mes-calor" onchange="atualizarMapaCalor()" style="padding:10px; border-radius:5px; border:1px solid #ddd;">
-                        <option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option>
-                        <option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option>
-                        <option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option>
-                        <option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+            </div>
+
+            <div class="tabela-controles">
+                <div class="busca-container">
+                    <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
+                </div>
+                <div class="paginacao-container">
+                    <button class="paginacao-btn" id="btn-pag-anterior" onclick="mudarPaginaPosto(-1)">◀</button>
+                    <span id="indicador-paginacao">Página 1 de 1</span>
+                    <button class="paginacao-btn" id="btn-pag-proxima" onclick="mudarPaginaPosto(1)">▶</button>
+                </div>
+            </div>
+
+            <table id="tabela-postos-oficial">
+                <thead><tr><th>Nome do Posto</th><th>Cidade/Local</th></tr></thead>
+                <tbody id="corpo-postos"></tbody>
+            </table>
+        </section>
+
+        <!-- RELATORIOS -->
+        <section id="view-relatorios" class="view-secao">
+            <select id="sel-user-rel" onchange="gerarRelatorio()"></select>
+            <div class="card-grid"><div class="card"><h3>Visitas no Mês</h3><div class="valor" id="rel-v-mes">0</div></div></div>
+            <table id="tab-rel">
+                <thead><tr><th>Data</th><th>Posto</th><th>Motivo</th></tr></thead>
+                <tbody id="corpo-rel"></tbody>
+            </table>
+        </section>
+
+        <!-- CALOR -->
+        <section id="view-calor" class="view-secao">
+            <div class="heatmap-wrapper-vertical">
+                <div class="seletor-posto-container" data-html2pdf-ignore="true">
+                    <label for="sel-posto-calor" style="font-size:14px; font-weight:bold; color:var(--secondary); display:block; margin-bottom:8px;">🏢 Selecione o Posto Alvo:</label>
+                    <select id="sel-posto-calor" onchange="dispararMudancaSeletorPosto()">
+                        <option value="">Aguardando carregamento de postos...</option>
                     </select>
                 </div>
 
-                <div id="admin-controls-calor" style="display:none; background: #fffbeb; border: 1px solid #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h3 style="margin-top:0; color: #92400e; font-size: 14px; margin-bottom:10px;">🛠️ Inserção Manual de Visita</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
-                        <input type="date" id="adm-data-visita">
-                        <input type="text" id="adm-nome-colaborador" placeholder="Colaborador">
-                        <input type="text" id="adm-motivo-visita" value="Inserção Manual">
-                        <button class="primary" onclick="inserirVisitaManual()" style="width:auto;">Registrar</button>
+                <div class="heatmap-calendario-box" id="area-impressao-pdf">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+                        <div>
+                            <h3 id="nome-posto-selecionado" style="margin:0; color:var(--primary);">Nenhum posto selecionado</h3>
+                            <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Frequência de auditoria interna por período selecionado.</p>
+                        </div>
+                        <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
+                    </div>
+
+                    <div class="heatmap-controles" data-html2pdf-ignore="true">
+                        <button class="secondary" onclick="alterarMes(-1)">◀ Voltar</button>
+                        <div class="heatmap-mes-titulo" id="filtro-mes-ano-texto">Mês Corrente</div>
+                        <button class="secondary" onclick="alterarMes(1)">Avançar ▶</button>
+                    </div>
+
+                    <div id="heatmap-container" class="heatmap-grid"></div>
+
+                    <div class="heatmap-legenda">
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-0)"></div> 0 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-1-3)"></div> 1 a 3 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-4-7)"></div> 4 a 7 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-8-12)"></div> 8 a 12 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-13)"></div> 13+ vis.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FINANCEIRO (RESTRUTURADO COM GRÁFICO À ESQUERDA E OPERAÇÕES DE EDIÇÃO/EXCLUSÃO) -->
+        <section id="view-financeiro" class="view-secao">
+            <div class="financeiro-grid-layout">
+                
+                <!-- Coluna da Esquerda: Formulário de Lançamento + Gráfico Comparativo -->
+                <div class="coluna-esquerda-financeiro">
+                    <!-- Formulário -->
+                    <div class="form-financeiro-box">
+                        <h3 id="fin-titulo-formulario">Lançamento de Horas</h3>
+                        <input type="hidden" id="fin-input-index" value=""> <!-- Campo invisível para controle de edição -->
+                        
+                        <label>Posto de Serviço:</label>
+                        <select id="fin-input-posto"></select>
+                        
+                        <label>Data da Ocorrência:</label>
+                        <input type="date" id="fin-input-data">
+                        
+                        <label>Quantidade de Horas:</label>
+                        <input type="number" id="fin-input-horas" placeholder="Ex: 2" min="1">
+                        
+                        <label>Valor Desperdiçado (R$):</label>
+                        <input type="number" id="fin-input-valor" placeholder="Ex: 150.00" step="0.01">
+                        
+                        <label>Motivo da Ineficiência (Editável):</label>
+                        <input type="text" id="fin-input-motivo" placeholder="Ex: Faltou / Atraso na rendição">
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="primary" style="margin-top:10px; flex:1;" id="fin-btn-salvar" onclick="salvarHoraIneficiente()">Registrar</button>
+                            <button class="secondary" style="margin-top:10px; display:none;" id="fin-btn-cancelar" onclick="cancelarEdicaoFinanceira()">Cancelar</button>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Realocado para Baixo do Lançamento -->
+                    <div class="grafico-financeiro-box" data-html2pdf-ignore="true">
+                        <h3 style="margin-top:0; color:var(--primary); font-size:14px; text-transform:uppercase;">📊 Perdas por Postos</h3>
+                        <div style="height:220px; position:relative;">
+                            <canvas id="chartFinanceiro"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <div id="container-mapa" style="background: white;">
-                    <div class="calendar-grid" id="calendario-calor"></div>
+                <!-- Coluna da Direita: Planilha Mensal Completa -->
+                <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+                        <div>
+                            <h2 style="margin:0; color:var(--primary); font-size:20px;">Relatório de Horas Ineficientes</h2>
+                            <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Controle financeiro e operacional de quebras de contrato.</p>
+                        </div>
+                        <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarFinanceiroPDF()">📄 Exportar PDF</button>
+                    </div>
+
+                    <!-- Controles de Período Mensal -->
+                    <div class="heatmap-controles" data-html2pdf-ignore="true">
+                        <button class="secondary" onclick="alterarMesFinanceiro(-1)">◀ Mês Anterior</button>
+                        <div class="heatmap-mes-titulo" id="fin-mes-ano-texto">Mês Corrente</div>
+                        <button class="secondary" onclick="alterarMesFinanceiro(1)">Próximo Mês ▶</button>
+                    </div>
+
+                    <!-- Planilha Mensal com Coluna de Ações -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Posto</th>
+                                <th>Data</th>
+                                <th>Motivo da Ineficiência</th>
+                                <th>Horas</th>
+                                <th>Valor Prejuízo</th>
+                                <th data-html2pdf-ignore="true">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpo-financeiro"></tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3" style="text-align:right;">Impacto Financeiro Total:</td>
+                                <td id="fin-total-horas">0h</td>
+                                <td id="fin-total-valor">R$ 0,00</td>
+                                <td data-html2pdf-ignore="true"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
+
             </div>
         </section>
-
-        <section id="view-financeiro" class="view" style="display:none;">
-            <div class="card"><h2 class="card-title">💰 Controle Financeiro</h2><p>Dados baseados em R$ 0,75 por KM.</p></div>
-        </section>
-
-        <section id="view-rondas" class="view" style="display:none;">
-            <div class="card">
-                <h2 class="card-title">📋 Log de Rondas</h2>
-                <table id="tabela-rondas">
-                    <thead><tr><th>Data/Hora</th><th>Posto</th><th>Colaborador</th><th>Motivo</th></tr></thead>
-                    <tbody id="corpo-rondas"></tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+    </div>
 
     <script>
-        // CREDENCIAIS EXTRAÍDAS DO SEU FICHEIRO CORREÇÃO DE ERRO.TXT
         const firebaseConfig = {
             apiKey: "AIzaSyBL4Nka91iGIAWSTfvAmsqDHCj2KMhWZ70",
             authDomain: "sentinela-ops-profissional.firebaseapp.com",
@@ -161,27 +339,36 @@
         const auth = firebase.auth();
         const fs = firebase.firestore();
 
-        let dadosRondas = [];
+        let rondas = [];
+        let listaPostos = [];
+        let chart = null;
+        let chartFin = null;
+        let postoSelecionadoAtual = "";
+        let dataFiltroAlvo = new Date();
+        let dataFiltroFinanceiro = new Date();
 
-        async function fazerLogin() {
-            const e = document.getElementById('email').value;
-            const s = document.getElementById('senha').value;
-            try { await auth.signInWithEmailAndPassword(e, s); } catch (err) { alert("Erro ao acessar: " + err.message); }
-        }
+        let paginaAtualPosto = 1;
+        const registrosPorPagina = 10;
+        let postosFiltrados = [];
+
+        // Banco de dados simulado localmente para o Financeiro
+        let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro')) || [
+            { posto: "Zaffari Bourbon", data: "2026-05-10", motivo: "Atraso no rendimento do funcionário", horas: 2, valor: 120.00 },
+            { posto: "Shopping João Pessoa", data: "2026-05-12", motivo: "Falta injustificada de colaborador", horas: 4, valor: 250.00 }
+        ];
 
         auth.onAuthStateChanged(async user => {
             if (user) {
                 const doc = await fs.collection("usuarios").doc(user.uid).get();
-                const isAdmin = (doc.exists && doc.data().role === "admin") || user.email === "gerencia@sentinela.com";
-
-                if (isAdmin) {
+                if (doc.exists && doc.data().role === "admin" || ["admin@sentinela.com", "gerencia@sentinela.com"].includes(user.email)) {
                     document.getElementById('secao-login').style.display = 'none';
                     document.getElementById('nav-lateral').style.display = 'flex';
                     document.getElementById('conteudo-painel').style.display = 'block';
-                    document.getElementById('admin-controls-calor').style.display = 'block';
-                    carregarPostos();
                     ouvirDados();
-                } else { alert("Acesso negado"); auth.signOut(); }
+                } else {
+                    alert("Acesso restrito");
+                    auth.signOut();
+                }
             } else {
                 document.getElementById('secao-login').style.display = 'flex';
                 document.getElementById('nav-lateral').style.display = 'none';
@@ -189,77 +376,396 @@
             }
         });
 
-        function carregarPostos() {
-            fs.collection('postos').orderBy('nome').onSnapshot(snap => {
-                const sel = document.getElementById('sel-posto-calor');
-                sel.innerHTML = '<option value="">Selecione um posto...</option>';
-                snap.forEach(doc => {
-                    sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`;
-                });
-            });
+        function fazerLogin() {
+            auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value)
+                .catch(() => document.getElementById('erro-login').innerText = "Falha no login");
         }
 
-        function ouvirDados() {
-            fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
-                dadosRondas = [];
-                snap.forEach(doc => dadosRondas.push(doc.data()));
-                atualizarMapaCalor();
-                atualizarTabelaRondas();
-            });
-        }
+        function fazerLogout() { auth.signOut(); }
 
-        function atualizarMapaCalor() {
-            const posto = document.getElementById('sel-posto-calor').value;
-            const mes = parseInt(document.getElementById('mes-calor').value);
-            const ano = 2025;
-            const container = document.getElementById('calendario-calor');
-            container.innerHTML = '';
-
-            if (!posto) return;
-
-            const totalDias = new Date(ano, mes + 1, 0).getDate();
-            for (let dia = 1; dia <= totalDias; dia++) {
-                const dataStr = `${dia.toString().padStart(2, '0')}/${(mes + 1).toString().padStart(2, '0')}/${ano}`;
-                const visitas = dadosRondas.filter(r => r.posto === posto && r.data === dataStr).length;
-                let cl = 'intensidade-0';
-                if (visitas > 0) cl = 'intensidade-1';
-                if (visitas > 3) cl = 'intensidade-2';
-                if (visitas > 6) cl = 'intensidade-max';
-
-                container.innerHTML += `<div class="day-cell ${cl}"><span class="day-num">${dia}</span><span class="visit-count">${visitas}</span></div>`;
+        function alternarVisao(id) {
+            document.querySelectorAll('.view-secao').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-'+id).classList.add('active');
+            event.currentTarget.classList.add('active');
+            document.getElementById('titulo-aba').innerText = id.toUpperCase();
+            if(id === 'financeiro') {
+                cancelarEdicaoFinanceira();
+                renderizarFinanceiro();
             }
         }
 
-        async function inserirVisitaManual() {
-            const posto = document.getElementById('sel-posto-calor').value;
-            const dataRaw = document.getElementById('adm-data-visita').value;
-            if(!posto || !dataRaw) return alert("Selecione posto e data!");
+        function ouvirDados() {
+            fs.collection('postos').onSnapshot(snap => {
+                listaPostos = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                
+                listaPostos.sort((a, b) => {
+                    const nomeA = a.nome ? a.nome.toLowerCase() : '';
+                    const nomeB = b.nome ? b.nome.toLowerCase() : '';
+                    return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+                });
 
-            const [y, m, d] = dataRaw.split('-');
-            const novaRonda = {
-                posto: posto,
-                data: `${d}/${m}/${y}`,
-                hora: "00:00",
-                colaborador: document.getElementById('adm-nome-colaborador').value || "Admin",
-                motivo: document.getElementById('adm-motivo-visita').value,
-                km: "0",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                uid: auth.currentUser.uid
+                filtrarETubularPostos();
+                renderizarSeletorPostosCalor();
+                atualizarDropdownsFinanceiro();
+                document.getElementById('dash-p-total').innerText = listaPostos.length;
+                document.getElementById('postos-p-total').innerText = listaPostos.length;
+            });
+
+            fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
+                rondas = snap.docs.map(d => d.data());
+                const corpo = document.getElementById('corpo-rondas');
+                corpo.innerHTML = "";
+                let kmTotal = 0;
+                
+                rondas.forEach(r => {
+                    kmTotal += parseFloat(r.km) || 0;
+                    corpo.innerHTML += `<tr><td>${r.colaborador}</td><td>${r.posto}</td><td>${r.data} ${r.hora}</td><td>${r.motivo}</td><td>${r.km}</td></tr>`;
+                });
+
+                document.getElementById('dash-v-total').innerText = rondas.length;
+                document.getElementById('dash-km-total').innerText = kmTotal.toFixed(1);
+                
+                atualizarFiltros();
+                desenharChart();
+                if(postoSelecionadoAtual) {
+                    desenharCalor(postoSelecionadoAtual);
+                }
+            });
+        }
+
+        function filtrarETubularPostos() {
+            const termoBusca = document.getElementById('busca-posto-input').value.toLowerCase();
+            postosFiltrados = listaPostos.filter(p => {
+                const nome = p.nome ? p.nome.toLowerCase() : '';
+                const cidade = p.cidade ? p.cidade.toLowerCase() : '';
+                return nome.includes(termoBusca) || cidade.includes(termoBusca);
+            });
+
+            const totalPaginas = Math.ceil(postosFiltrados.length / registrosPorPagina) || 1;
+            if (paginaAtualPosto > totalPaginas) paginaAtualPosto = totalPaginas;
+
+            document.getElementById('btn-pag-anterior').disabled = (paginaAtualPosto === 1);
+            document.getElementById('btn-pag-proxima').disabled = (paginaAtualPosto === totalPaginas);
+            document.getElementById('indicador-paginacao').innerText = `Página ${paginaAtualPosto} de ${totalPaginas}`;
+
+            const indiceInicio = (paginaAtualPosto - 1) * registrosPorPagina;
+            const indiceFim = indiceInicio + registrosPorPagina;
+            const postosExibidos = postosFiltrados.slice(indiceInicio, indiceFim);
+
+            const corpo = document.getElementById('corpo-postos');
+            corpo.innerHTML = "";
+            postosExibidos.forEach(p => {
+                corpo.innerHTML += `<tr><td>${p.nome}</td><td>${p.cidade || 'N/A'}</td></tr>`;
+            });
+        }
+
+        function mudarPaginaPosto(direcao) {
+            paginaAtualPosto += direcao;
+            filtrarETubularPostos();
+        }
+
+        function atualizarFiltros() {
+            const users = [...new Set(rondas.map(r => r.colaborador))];
+            let html = '<option value="">Selecionar...</option>';
+            users.forEach(u => html += `<option value="${u}">${u}</option>`);
+            document.getElementById('sel-user-rel').innerHTML = html;
+        }
+
+        function renderizarSeletorPostosCalor() {
+            const select = document.getElementById('sel-posto-calor');
+            let html = '<option value="">-- Selecione um Posto da Lista --</option>';
+            listaPostos.forEach(p => {
+                html += `<option value="${p.nome}">🏢 ${p.nome}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        function atualizarDropdownsFinanceiro() {
+            const selectForm = document.getElementById('fin-input-posto');
+            let html = '';
+            listaPostos.forEach(p => {
+                html += `<option value="${p.nome}">${p.nome}</option>`;
+            });
+            selectForm.innerHTML = html;
+        }
+
+        function dispararMudancaSeletorPosto() {
+            const select = document.getElementById('sel-posto-calor');
+            const nomePosto = select.value;
+            postoSelecionadoAtual = nomePosto;
+
+            if(nomePosto) {
+                document.getElementById('nome-posto-selecionado').innerText = nomePosto;
+                desenharCalor(nomePosto);
+            } else {
+                document.getElementById('nome-posto-selecionado').innerText = "Nenhum posto selecionado";
+                document.getElementById('heatmap-container').innerHTML = "";
+            }
+        }
+
+        function alterarMes(fator) {
+            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
+            if(postoSelecionadoAtual) {
+                desenharCalor(postoSelecionadoAtual);
+            } else {
+                atualizarTextoMesAno();
+            }
+        }
+
+        function atualizarTextoMesAno() {
+            const textoMesAno = dataFiltroAlvo.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
+            document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
+        }
+
+        function desenharCalor(nomePosto) {
+            atualizarTextoMesAno();
+            const container = document.getElementById('heatmap-container');
+            container.innerHTML = "";
+            
+            const anoAlvo = dataFiltroAlvo.getFullYear();
+            const mesAlvo = dataFiltroAlvo.getMonth();
+
+            const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
+            const freq = {};
+            
+            rondas.filter(r => {
+                if (r.posto !== nomePosto) return false;
+                const partes = r.data.includes('-') ? r.data.split('-') : r.data.split('/');
+                const anoRonda = parseInt(partes[0].length === 4 ? partes[0] : partes[2]);
+                const mesRonda = parseInt(partes[0].length === 4 ? partes[1] : partes[1]) - 1;
+                return anoRonda === anoAlvo && mesRonda === mesAlvo;
+            }).forEach(r => {
+                const partes = r.data.includes('-') ? r.data.split('-') : r.data.split('/');
+                const dia = parseInt(partes[0].length === 4 ? partes[2] : partes[0]);
+                freq[dia] = (freq[dia] || 0) + 1;
+            });
+
+            for(let i = 1; i <= totalDiasNoMes; i++) {
+                let n = 0;
+                const v = freq[i] || 0;
+                
+                if (v === 0) n = 0;
+                else if (v >= 1 && v <= 3) n = 1;
+                else if (v >= 4 && v <= 7) n = 2;
+                else if (v >= 8 && v <= 12) n = 3;
+                else if (v >= 13) n = 4;
+                
+                container.innerHTML += `
+                    <div class="heatmap-dia intensidade-${n}">
+                        ${i}
+                        <span>${v}v</span>
+                    </div>`;
+            }
+        }
+
+        // --- MOTOR LOGICO DA VIEW FINANCEIRO (ATUALIZADO) ---
+
+        function alterarMesFinanceiro(fator) {
+            dataFiltroFinanceiro.setMonth(dataFiltroFinanceiro.getMonth() + fator);
+            renderizarFinanceiro();
+        }
+
+        // Salva ou atualiza um lançamento existente
+        function salvarHoraIneficiente() {
+            const index = document.getElementById('fin-input-index').value;
+            const posto = document.getElementById('fin-input-posto').value;
+            const data = document.getElementById('fin-input-data').value;
+            const horas = parseFloat(document.getElementById('fin-input-horas').value);
+            const valor = parseFloat(document.getElementById('fin-input-valor').value);
+            const motivo = document.getElementById('fin-input-motivo').value;
+
+            if(!data || isNaN(horas) || isNaN(valor) || !motivo) {
+                alert("Por favor, preencha todos os campos do formulário.");
+                return;
+            }
+
+            const novoRegistro = { posto, data, horas, valor, motivo };
+
+            if(index === "") {
+                // Modo: Novo Registro
+                registrosFinanceiros.push(novoRegistro);
+            } else {
+                // Modo: Edição de Registro Existente
+                registrosFinanceiros[parseInt(index)] = novoRegistro;
+                cancelarEdicaoFinanceira(); // Reseta os botões e títulos
+            }
+
+            localStorage.setItem('sentinela_financeiro', JSON.stringify(registrosFinanceiros));
+            limparFormularioFinanceiro();
+            renderizarFinanceiro();
+        }
+
+        // Preenche o formulário com os dados da linha selecionada para alteração
+        function prepararEdicaoFinanceira(globalIndex) {
+            const reg = registrosFinanceiros[globalIndex];
+            
+            document.getElementById('fin-input-index').value = globalIndex;
+            document.getElementById('fin-input-posto').value = reg.posto;
+            document.getElementById('fin-input-data').value = reg.data;
+            document.getElementById('fin-input-horas').value = reg.horas;
+            document.getElementById('fin-input-valor').value = reg.valor;
+            document.getElementById('fin-input-motivo').value = reg.motivo;
+
+            // Modifica o aspecto visual do formulário para o modo de Edição
+            document.getElementById('fin-titulo-formulario').innerText = "✏️ Alterar Valores";
+            document.getElementById('fin-btn-salvar').innerText = "Salvar Alterações";
+            document.getElementById('fin-btn-cancelar').style.display = "block";
+        }
+
+        function cancelarEdicaoFinanceira() {
+            limparFormularioFinanceiro();
+            document.getElementById('fin-input-index').value = "";
+            document.getElementById('fin-titulo-formulario').innerText = "Lançamento de Horas";
+            document.getElementById('fin-btn-salvar').innerText = "Registrar";
+            document.getElementById('fin-btn-cancelar').style.display = "none";
+        }
+
+        // Exclui o posto selecionado do array e atualiza o gráfico
+        function excluirRegistroFinanceiro(globalIndex) {
+            if(confirm("Deseja realmente excluir permanentemente este lançamento financeiro?")) {
+                registrosFinanceiros.splice(globalIndex, 1);
+                localStorage.setItem('sentinela_financeiro', JSON.stringify(registrosFinanceiros));
+                cancelarEdicaoFinanceira();
+                renderizarFinanceiro();
+            }
+        }
+
+        function limparFormularioFinanceiro() {
+            document.getElementById('fin-input-data').value = "";
+            document.getElementById('fin-input-horas').value = "";
+            document.getElementById('fin-input-valor').value = "";
+            document.getElementById('fin-input-motivo').value = "";
+        }
+
+        function renderizarFinanceiro() {
+            const textoMesAno = dataFiltroFinanceiro.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
+            document.getElementById('fin-mes-ano-texto').innerText = textoMesAno;
+
+            const anoAlvo = dataFiltroFinanceiro.getFullYear();
+            const mesAlvo = dataFiltroFinanceiro.getMonth();
+
+            const corpo = document.getElementById('corpo-financeiro');
+            corpo.innerHTML = "";
+            
+            let totalHoras = 0;
+            let totalPrejuizo = 0;
+            const perdasPorPosto = {};
+
+            // Mapeia mantendo o índice global estável para as funções de Edição/Exclusão
+            registrosFinanceiros.forEach((reg, globalIndex) => {
+                const partes = reg.data.split('-');
+                const anoReg = parseInt(partes[0]);
+                const mesReg = parseInt(partes[1]) - 1;
+
+                // Renderiza na tabela se corresponder ao mês/ano selecionado no controle temporal
+                if(anoReg === anoAlvo && mesReg === mesAlvo) {
+                    totalHoras += reg.horas;
+                    totalPrejuizo += reg.valor;
+                    perdasPorPosto[reg.posto] = (perdasPorPosto[reg.posto] || 0) + reg.valor;
+
+                    corpo.innerHTML += `
+                        <tr>
+                            <td><strong>${reg.posto}</strong></td>
+                            <td>${reg.data.split('-').reverse().join('/')}</td>
+                            <td>${reg.motivo}</td>
+                            <td>${reg.horas}h</td>
+                            <td>R$ ${reg.valor.toFixed(2).replace('.', ',')}</td>
+                            <td data-html2pdf-ignore="true">
+                                <button class="btn-acao btn-editar" onclick="prepararEdicaoFinanceira(${globalIndex})">Alterar</button>
+                                <button class="btn-acao btn-excluir" onclick="excluirRegistroFinanceiro(${globalIndex})">Excluir</button>
+                            </td>
+                        </tr>`;
+                }
+            });
+
+            if(corpo.innerHTML === "") {
+                corpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">Nenhum registro encontrado para este mês.</td></tr>`;
+            }
+
+            document.getElementById('fin-total-horas').innerText = `${totalHoras}h`;
+            document.getElementById('fin-total-valor').innerText = `R$ ${totalPrejuizo.toFixed(2).replace('.', ',')}`;
+
+            desenharChartFinanceiro(perdasPorPosto);
+        }
+
+        function desenharChartFinanceiro(perdasPorPosto) {
+            const ctx = document.getElementById('chartFinanceiro').getContext('2d');
+            if(chartFin) chartFin.destroy();
+
+            const postosLabels = Object.keys(perdasPorPosto);
+            const valoresData = Object.values(perdasPorPosto);
+
+            chartFin = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: postosLabels,
+                    datasets: [{
+                        label: 'Prejuízo (R$)',
+                        data: valoresData,
+                        backgroundColor: '#ef4444',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: value => 'R$ ' + value }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportarFinanceiroPDF() {
+            const elemento = document.getElementById('area-impressao-financeiro');
+            const mesAnoTexto = document.getElementById('fin-mes-ano-texto').innerText.replace(' de ', '_');
+            const nomeArquivo = `Relatorio_Financeiro_Ineficiencias_${mesAnoTexto}.pdf`;
+
+            const opcoes = {
+                margin: 10,
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            await fs.collection('rondas').add(novaRonda);
-            alert("Sucesso!");
+
+            html2pdf().set(opcoes).from(elemento).save();
         }
 
-        function mostrarView(id) {
-            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
+        function exportarMapaParaPDF() {
+            if (!postoSelecionadoAtual) {
+                alert("Por favor, selecione um posto antes de gerar o PDF.");
+                return;
+            }
+            const elemento = document.getElementById('area-impressao-pdf');
+            const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
+            const nomeArquivo = `Mapa_Calor_${postoSelecionadoAtual.replace(/\s+/g, '_')}_${mesAnoTexto}.pdf`;
+
+            const opcoes = {
+                margin: 10,
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opcoes).from(elemento).save();
         }
 
-        function atualizarTabelaRondas() {
-            const corpo = document.getElementById('corpo-rondas');
-            corpo.innerHTML = '';
-            dadosRondas.slice(0, 20).forEach(r => {
-                corpo.innerHTML += `<tr><td>${r.data}</td><td>${r.posto}</td><td>${r.colaborador}</td><td>${r.motivo}</td></tr>`;
+        function desenharChart() {
+            const ctx = document.getElementById('chartAtividade').getContext('2d');
+            if(chart) chart.destroy();
+            const counts = {};
+            rondas.slice(0,10).forEach(r => counts[r.posto] = (counts[r.posto] || 0) + 1);
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: Object.keys(counts), datasets: [{ label: 'Visitas', data: Object.values(counts), backgroundColor: '#2563eb' }]},
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
     </script>
