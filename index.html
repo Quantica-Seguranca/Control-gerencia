@@ -28,123 +28,69 @@
             --calor-13: #991b1b;
         }
 
-        body { font-family: 'Segoe UI', sans-serif;
-        background-color: var(--bg); margin: 0; display: flex; min-height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; display: flex; min-height: 100vh; }
         
         /* Sidebar */
-        nav { width: 260px;
-        background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 100;
-        }
-        nav h2 { font-size: 18px; text-align: center; border-bottom: 1px solid #4f5d73;
-        padding-bottom: 15px; margin-bottom: 20px; }
-        .nav-btn { background: none; border: none; color: #bdc3c7;
-        padding: 12px; text-align: left; cursor: pointer; width: 100%; border-radius: 6px; margin-bottom: 5px; transition: 0.3s;
-        }
-        .nav-btn:hover, .nav-btn.active { background: var(--secondary); color: white;
-        }
+        nav { width: 260px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 100; }
+        nav h2 { font-size: 18px; text-align: center; border-bottom: 1px solid #4f5d73; padding-bottom: 15px; margin-bottom: 20px; }
+        .nav-btn { background: none; border: none; color: #bdc3c7; padding: 12px; text-align: left; cursor: pointer; width: 100%; border-radius: 6px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-btn:hover, .nav-btn.active { background: var(--secondary); color: white; }
         .btn-logout { background: var(--danger); color: white; margin-top: auto; text-align: center; }
 
         /* Main Content */
-        .main { flex: 1;
-        padding: 30px; overflow-y: auto; }
-        #secao-login { position: fixed; inset: 0; background: var(--bg);
-        z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .login-box { background: white;
-        padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; text-align: center;
-        }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        #secao-login { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
         
-        input, select { width: 100%;
-        padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
-        }
-        button.primary { width: 100%; padding: 12px; background: var(--success); color: white; border: none;
-        border-radius: 6px; font-weight: bold; cursor: pointer; }
-        button.secondary { background: #e2e8f0; color: var(--primary);
-        border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 500;
-        }
-        button.secondary:hover { background: #cbd5e1;
-        }
-        button.btn-pdf { background: var(--accent); color: white; border: none; padding: 8px 15px;
-        border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px;
-        }
-        button.btn-pdf:hover { background: #1d4ed8;
-        }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button.primary { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        button.secondary { background: #e2e8f0; color: var(--primary); border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        button.secondary:hover { background: #cbd5e1; }
+        button.btn-pdf { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+        button.btn-pdf:hover { background: #1d4ed8; }
 
         /* Botões de ação da tabela */
-        .btn-acao { padding: 4px 8px;
-        border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; margin-right: 4px;
-        }
-        .btn-editar { background: #3498db; color: white;
-        }
-        .btn-editar:hover { background: #2980b9;
-        }
-        .btn-excluir { background: var(--danger); color: white;
-        }
-        .btn-excluir:hover { background: #c0392b;
-        }
+        .btn-acao { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; margin-right: 4px; }
+        .btn-editar { background: #3498db; color: white; }
+        .btn-editar:hover { background: #2980b9; }
+        .btn-excluir { background: var(--danger); color: white; }
+        .btn-excluir:hover { background: #c0392b; }
 
-        .view-secao { display: none;
-        }
-        .view-secao.active { display: block;
-        }
+        .view-secao { display: none; }
+        .view-secao.active { display: block; }
 
         /* Cards & Tables */
-        .card-grid { display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: white;
-        padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent);
-        }
-        .card h3 { margin: 0; font-size: 12px; color: #7f8c8d; text-transform: uppercase;
-        }
-        .card .valor { font-size: 24px; font-weight: bold; margin-top: 5px;
-        }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
+        .card h3 { margin: 0; font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+        .card .valor { font-size: 24px; font-weight: bold; margin-top: 5px; }
 
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden;
-        }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee;
-        font-size: 14px; }
-        th { background: var(--secondary); color: white;
-        }
-        tr.total-row { background: #f8fafc; font-weight: bold; font-size: 16px; border-top: 2px solid #cbd5e1;
-        }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: var(--secondary); color: white; }
+        tr.total-row { background: #f8fafc; font-weight: bold; font-size: 16px; border-top: 2px solid #cbd5e1; }
 
         /* Controles de Tabela */
-        .tabela-controles { display: flex;
-        justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; }
-        .busca-container { position: relative;
-        flex: 1; max-width: 400px; }
-        .busca-container input { margin-bottom: 0; padding-left: 15px;
-        }
-        .paginacao-container { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--secondary);
-        }
-        .paginacao-btn { padding: 6px 12px; background: white; border: 1px solid #cbd5e1;
-        border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .paginacao-btn:disabled { background: #e2e8f0; color: #94a3b8;
-        cursor: not-allowed; }
+        .tabela-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; }
+        .busca-container { position: relative; flex: 1; max-width: 400px; }
+        .busca-container input { margin-bottom: 0; padding-left: 15px; }
+        .paginacao-container { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--secondary); }
+        .paginacao-btn { padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .paginacao-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 
         /* Layout do Mapa de Calor */
-        .heatmap-wrapper-vertical { display: flex;
-        flex-direction: column; gap: 20px; max-width: 800px; }
-        .seletor-posto-container { background: white; padding: 20px;
-        border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .seletor-posto-container select { margin-bottom: 0;
-        }
+        .heatmap-wrapper-vertical { display: flex; flex-direction: column; gap: 20px; max-width: 800px; }
+        .seletor-posto-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .seletor-posto-container select { margin-bottom: 0; }
         
-        .heatmap-calendario-box { background: white;
-        padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .heatmap-controles { display: flex;
-        justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 10px 15px; border-radius: 8px;
-        }
-        .heatmap-mes-titulo { font-size: 16px; font-weight: bold; color: var(--primary); text-transform: capitalize;
-        }
+        .heatmap-calendario-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .heatmap-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; }
+        .heatmap-mes-titulo { font-size: 16px; font-weight: bold; color: var(--primary); text-transform: capitalize; }
         
         /* Grid do Mapa de Calor */
-        .heatmap-grid { display: grid;
-        grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 100%; margin-top: 15px; }
-        .heatmap-dia { aspect-ratio: 1;
-        border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #e2e8f0;
-        }
-        .heatmap-dia span { font-size: 10px; font-weight: normal; margin-top: 2px;
-        }
+        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 100%; margin-top: 15px; }
+        .heatmap-dia { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #e2e8f0; }
+        .heatmap-dia span { font-size: 10px; font-weight: normal; margin-top: 2px; }
         
         /* Classes de Intensidade Ajustadas com a Nova Escala */
         .intensidade-0 { background: var(--calor-0); color: #94a3b8; }
@@ -154,30 +100,18 @@
         .intensidade-4 { background: var(--calor-13); color: #ffffff; }
 
         /* Legenda */
-        .heatmap-legenda { display: flex;
-        gap: 15px; flex-wrap: wrap; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 13px;
-        }
-        .legenda-item { display: flex; align-items: center; gap: 6px;
-        }
-        .legenda-cor { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #cbd5e1;
-        }
+        .heatmap-legenda { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 13px; }
+        .legenda-item { display: flex; align-items: center; gap: 6px; }
+        .legenda-cor { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #cbd5e1; }
 
         /* ESTILOS ESPECÍFICOS - VIEW FINANCEIRO RESTRUTURADO */
-        .financeiro-grid-layout { display: grid;
-        grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
-        .coluna-esquerda-financeiro { display: flex;
-        flex-direction: column; gap: 20px; }
-        .form-financeiro-box { background: white; padding: 25px; border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .form-financeiro-box h3 { margin-top: 0; margin-bottom: 15px;
-        color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px;
-        }
-        .form-financeiro-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block;
-        margin-bottom: 5px; }
-        .financeiro-painel-relatorio { background: white; padding: 25px; border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .grafico-financeiro-box { background: white; padding: 20px;
-        border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .financeiro-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .coluna-esquerda-financeiro { display: flex; flex-direction: column; gap: 20px; }
+        .form-financeiro-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-financeiro-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-financeiro-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .financeiro-painel-relatorio { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .grafico-financeiro-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
         /* Estilos Adicionados para a Nova View Administrativa */
         .admin-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
@@ -421,7 +355,7 @@
         
         let rondas = []; 
         let listaPostos = [];
-        let visitantesRegistrados = []; // Vetor de sincronização em tempo real do CRUD
+        let visitorsRegistrados = []; // Vetor de sincronização em tempo real do CRUD
         let chartFin = null;
         let postoSelecionadoAtual = "";
         let dataFiltroAlvo = new Date();
@@ -473,13 +407,14 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             
             document.getElementById('view-' + id).classList.add('active');
-            if(event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
+            if(window.event && window.event.currentTarget) {
+                window.event.currentTarget.classList.add('active');
             } else {
                 if(id === 'administracao') document.getElementById('btn-menu-admin').classList.add('active');
             }
             
-            document.getElementById('titulo-aba').innerText = id === 'administracao' ? 'ADMINISTRAÇÃO CORPORATIVA' : id.toUpperCase();
+            document.getElementById('titulo-aba').innerText = id === 'administracao' ?
+                'ADMINISTRAÇÃO CORPORATIVA' : id.toUpperCase();
             
             if(id === 'financeiro') {
                 cancelarEdicaoFinanceira();
@@ -511,7 +446,7 @@
 
             // Listener em tempo real da nova collection de visitantes para integração direta com o Heatmap
             fs.collection('visitantes_heatmap').orderBy('criadoEm', 'desc').onSnapshot(snap => {
-                visitantesRegistrados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                visitorsRegistrados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderizarTabelaAdmin();
                 if(postoSelecionadoAtual) {
                     desenharCalor(postoSelecionadoAtual);
@@ -528,11 +463,13 @@
                 const cidade = p.cidade ? p.cidade.toLowerCase() : '';
                 return nome.includes(termoBusca) || cidade.includes(termoBusca);
             });
+
             const totalPaginas = Math.ceil(postosFiltrados.length / registrosPorPagina) || 1;
             if (paginaAtualPosto > totalPaginas) paginaAtualPosto = totalPaginas;
             document.getElementById('btn-pag-anterior').disabled = (paginaAtualPosto === 1);
             document.getElementById('btn-pag-proxima').disabled = (paginaAtualPosto === totalPaginas);
             document.getElementById('indicador-paginacao').innerText = `Página ${paginaAtualPosto} de ${totalPaginas}`;
+            
             const indiceInicio = (paginaAtualPosto - 1) * registrosPorPagina;
             const indiceFim = indiceInicio + registrosPorPagina;
             const postosExibidos = postosFiltrados.slice(indiceInicio, indiceFim);
@@ -588,8 +525,8 @@
             }
         }
 
+        /* CORREÇÃO APLICADA: Limpeza de resíduos de digitação na assinatura matemática */
         function alterarMes(fator) {
-            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + factor = factor => fator);
             dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
             if(postoSelecionadoAtual) {
                 desenharCalor(postoSelecionadoAtual);
@@ -603,7 +540,6 @@
             document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
         }
 
-        /* RECUPERAÇÃO INTEGRAL DO CALENDÁRIO DO HEATMAP COM A NOVA LOGICA CORPORATIVA */
         function desenharCalor(nomePosto) {
             atualizarTextoMesAno();
             const container = document.getElementById('heatmap-container');
@@ -613,23 +549,20 @@
             const anoAlvo = dataFiltroAlvo.getFullYear();
             const mesAlvo = dataFiltroAlvo.getMonth();
             
-            // Determinar o primeiro dia da semana do mês para alinhamento estrito do grid (0 = Domingo, 6 = Sábado)
             const primeiroDiaDaSemana = new Date(anoAlvo, mesAlvo, 1).getDay();
             const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
             
-            // Dicionário local indexado pelo dia do mês para consolidação volumétrica
             const volumetriaDiaria = {};
             for (let d = 1; d <= totalDiasNoMes; d++) {
                 volumetriaDiaria[d] = 0;
             }
 
-            // Agrupamento e processamento dos dados corporativos extraídos do Firestore (visitantes_heatmap)
-            visitantesRegistrados.forEach(v => {
+            visitorsRegistrados.forEach(v => {
                 if (v.posto === nomePosto && v.data) {
-                    const partes = v.data.split('-'); // Padrão ISO YYYY-MM-DD
+                    const partes = v.data.split('-'); 
                     if (partes.length === 3) {
                         const anoReg = parseInt(partes[0], 10);
-                        const mesReg = parseInt(partes[1], 10) - 1; // Ajuste Base Zero Javascript
+                        const mesReg = parseInt(partes[1], 10) - 1; 
                         const diaReg = parseInt(partes[2], 10);
                         
                         if (anoReg === anoAlvo && mesReg === mesAlvo) {
@@ -639,19 +572,16 @@
                 }
             });
 
-            // Injeção de blocos vazios para correto alinhamento do primeiro dia do mês no grid de 7 colunas
             for (let i = 0; i < primeiroDiaDaSemana; i++) {
                 const BlocoVazio = document.createElement('div');
                 BlocoVazio.style.visibility = 'hidden';
                 container.appendChild(BlocoVazio);
             }
 
-            // Renderização dinâmica de cada célula mantendo as classes e identidades visuais originais
             for (let dia = 1; dia <= totalDiasNoMes; dia++) {
                 const totalVisitantes = volumetriaDiaria[dia] || 0;
                 let classeIntensidade = "intensidade-0";
 
-                // Aplicação rígida da nova escala de cores e limites operacionais
                 if (totalVisitantes === 0) {
                     classeIntensidade = "intensidade-0";
                 } else if (totalVisitantes >= 1 && totalVisitantes <= 50) {
@@ -689,7 +619,6 @@
             html2pdf().set(opcoes).from(elemento).save();
         }
 
-        /* LOGICA DO MÓDULO FINANCEIRO PRESERVADA INTEGRALMENTE */
         function alterarMesFinanceiro(fator) {
             dataFiltroFinanceiro.setMonth(dataFiltroFinanceiro.getMonth() + fator);
             renderizarFinanceiro();
@@ -703,7 +632,6 @@
             const mesAlvo = dataFiltroFinanceiro.getMonth();
             const corpo = document.getElementById('corpo-financeiro');
             corpo.innerHTML = "";
-            
             let totalHoras = 0;
             let totalValor = 0;
             const perdasPorPosto = {};
@@ -772,7 +700,6 @@
             document.getElementById('fin-input-horas').value = r.horas;
             document.getElementById('fin-input-valor').value = r.valor;
             document.getElementById('fin-input-motivo').value = r.motivo;
-            
             document.getElementById('fin-titulo-formulario').innerText = "Editar Lançamento";
             document.getElementById('fin-btn-salvar').innerText = "Atualizar";
             document.getElementById('fin-btn-cancelar').style.display = "block";
@@ -806,7 +733,6 @@
             
             const labels = Object.keys(dadosPerdas);
             const valores = Object.values(dadosPerdas);
-
             if(labels.length === 0) {
                 labels.push("Nenhum Desperdício");
                 valores.push(0);
@@ -846,7 +772,6 @@
             html2pdf().set(opcoes).from(elemento).save();
         }
 
-        /* ROTINAS COMPLETAS E NATIVAS DA NOVA VIEW ADMINISTRATIVA (CRUD + SEGURANÇA FIRESTORE) */
         function mostrarLoadingAdmin(estado) {
             const loader = document.getElementById('admin-loading');
             if (loader) loader.style.display = estado ? 'block' : 'none';
@@ -875,20 +800,18 @@
             const observacao = document.getElementById('admin-input-observacao').value;
             const responsavelEmail = auth.currentUser ? auth.currentUser.email : "Sistema Corporativo";
 
-            // Validações Obrigatórias do Escopo do Formulário
             if (!posto || !data || visitantesInput === "") {
                 alert("Erro: Os campos Posto, Data e Quantidade de Visitantes são estritamente obrigatórios.");
                 return;
             }
 
             const visitantes = parseInt(visitantesInput, 10);
-            if (isNaN(visitantes) || visitantes < 0) {
+            if (isNaN(visitantes) || visitors < 0) {
                 alert("Erro: A quantidade de visitantes não pode conter valores negativos ou nulos.");
                 return;
             }
 
             mostrarLoadingAdmin(true);
-            
             const payload = {
                 posto: posto,
                 data: data,
@@ -900,12 +823,10 @@
 
             try {
                 if (idRegistro === "") {
-                    // CREATE: Inserção manual na coleção corporativa do Firestore
                     await fs.collection('visitantes_heatmap').add(payload);
                     alert("Sucesso: Visitantes registrados e integrados ao Heatmap com sucesso.");
                 } else {
-                    // UPDATE: Atualização controlada sem mutação da data de criação original
-                    delete payload.criadoEm; 
+                    delete payload.criadoEm;
                     await fs.collection('visitantes_heatmap').doc(idRegistro).update(payload);
                     alert("Sucesso: Registro administrativo modificado com sucesso.");
                 }
@@ -923,7 +844,7 @@
                 alert("Acesso Negado: Usuários comuns possuem apenas direitos de leitura.");
                 return;
             }
-            const registro = visitantesRegistrados.find(v => v.id === id);
+            const registro = visitorsRegistrados.find(v => v.id === id);
             if (!registro) return;
 
             document.getElementById('admin-input-id').value = registro.id;
@@ -931,7 +852,6 @@
             document.getElementById('admin-input-data').value = registro.data;
             document.getElementById('admin-input-visitantes').value = registro.visitantes;
             document.getElementById('admin-input-observacao').value = registro.observacao;
-
             document.getElementById('admin-titulo-formulario').innerText = "Editar Registro Administrativo";
             document.getElementById('admin-btn-salvar').innerText = "Atualizar Registro";
             document.getElementById('admin-btn-cancelar').style.display = "block";
@@ -946,7 +866,6 @@
             if (confirm("Confirmação Crítica: Deseja realmente remover em definitivo este registro da base corporativa? Essa ação alterará o Mapa de Calor imediatamente.")) {
                 mostrarLoadingAdmin(true);
                 try {
-                    // DELETE: Exclusão direta no Firestore
                     await fs.collection('visitantes_heatmap').doc(id).delete();
                     alert("Sucesso: Registro removido com sucesso.");
                     limparFormularioAdmin();
@@ -964,12 +883,12 @@
             if (!tabelaCorpo) return;
             tabelaCorpo.innerHTML = "";
 
-            if (visitantesRegistrados.length === 0) {
+            if (visitorsRegistrados.length === 0) {
                 tabelaCorpo.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Nenhum registro de visitante encontrado no Firestore.</td></tr>`;
                 return;
             }
 
-            visitantesRegistrados.forEach(v => {
+            visitorsRegistrados.forEach(v => {
                 const dataFormatada = v.data ? v.data.split('-').reverse().join('/') : 'N/A';
                 let dataCadastro = "N/A";
                 
@@ -977,7 +896,6 @@
                     dataCadastro = v.criadoEm.toDate().toLocaleString('pt-BR');
                 }
 
-                // Injeção condicional de botões com base nas permissões em tempo de execução
                 const botoesAcao = usuarioLogadoPermissao === "admin" ? 
                     `<button class="btn-acao btn-editar" onclick="carregarEdicaoAdmin('${v.id}')">Editar</button>
                      <button class="btn-acao btn-excluir" onclick="excluirRegistroAdmin('${v.id}')">Excluir</button>` : 
