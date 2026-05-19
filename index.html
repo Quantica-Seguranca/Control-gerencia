@@ -12,7 +12,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-    
         :root {
             --primary: #2c3e50;
             --secondary: #34495e;
@@ -153,14 +152,14 @@
         <section id="view-postos" class="view-secao active">
             <div class="card-grid" style="margin-bottom: 20px;">
                 <div class="card">
-                    <h3>Total de Postos Registrados</h3>
+                     <h3>Total de Postos Registrados</h3>
                     <div class="valor" id="postos-p-total">0</div>
                 </div>
             </div>
 
             <div class="tabela-controles">
                 <div class="busca-container">
-                    <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
+                     <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
                 </div>
                 <div class="paginacao-container">
                     <button class="paginacao-btn" id="btn-pag-anterior" onclick="mudarPaginaPosto(-1)">◀</button>
@@ -184,7 +183,7 @@
                     </select>
                 </div>
 
-                <div class="heatmap-calendario-box" id="area-impressao-pdf">
+                 <div class="heatmap-calendario-box" id="area-impressao-pdf">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
                         <div>
                             <h3 id="nome-posto-selecionado" style="margin:0; color:var(--primary);">Nenhum posto selecionado</h3>
@@ -215,7 +214,7 @@
         <section id="view-financeiro" class="view-secao">
             <div class="financeiro-grid-layout">
                 <div class="coluna-esquerda-financeiro">
-                    <div class="form-financeiro-box">
+                     <div class="form-financeiro-box">
                         <h3 id="fin-titulo-formulario">Lançamento de Horas</h3>
                         <input type="hidden" id="fin-input-index" value="">
                         
@@ -223,7 +222,7 @@
                         <select id="fin-input-posto"></select>
                         
                         <label>Data da Ocorrência:</label>
-                        <input type="date" id="fin-input-data">
+                         <input type="date" id="fin-input-data">
                         
                         <label>Quantidade de Horas:</label>
                         <input type="number" id="fin-input-horas" placeholder="Ex: 2" min="1">
@@ -231,7 +230,7 @@
                         <label>Valor Desperdiçado (R$):</label>
                         <input type="number" id="fin-input-valor" placeholder="Ex: 150.00" step="0.01">
                         
-                        <label>Motivo da Ineficiência (Editável):</label>
+                         <label>Motivo da Ineficiência (Editável):</label>
                         <input type="text" id="fin-input-motivo" placeholder="Ex: Faltou / Atraso na rendição">
                         
                         <div style="display:flex; gap:10px;">
@@ -248,7 +247,7 @@
                     </div>
                 </div>
 
-                <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
+                 <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
                         <div>
                             <h2 style="margin:0; color:var(--primary); font-size:20px;">Relatório de Horas Ineficientes</h2>
@@ -261,29 +260,29 @@
                         <button class="secondary" onclick="alterarMesFinanceiro(-1)">◀ Mês Anterior</button>
                         <div class="heatmap-mes-titulo" id="fin-mes-ano-texto">Mês Corrente</div>
                         <button class="secondary" onclick="alterarMesFinanceiro(1)">Próximo Mês ▶</button>
-                    </div>
+                     </div>
 
                     <table>
                         <thead>
                             <tr>
-                                <th>Posto</th>
+                                 <th>Posto</th>
                                 <th>Data</th>
                                 <th>Motivo da Ineficiência</th>
-                                <th>Horas</th>
+                                 <th>Horas</th>
                                 <th>Valor Prejuízo</th>
                                 <th data-html2pdf-ignore="true">Ações</th>
-                            </tr>
+                             </tr>
                         </thead>
                         <tbody id="corpo-financeiro"></tbody>
                         <tfoot>
-                            <tr class="total-row">
+                             <tr class="total-row">
                                 <td colspan="3" style="text-align:right;">Impacto Financeiro Total:</td>
                                 <td id="fin-total-horas">0h</td>
-                                <td id="fin-total-valor">R$ 0,00</td>
+                                 <td id="fin-total-valor">R$ 0,00</td>
                                 <td data-html2pdf-ignore="true"></td>
                             </tr>
                         </tfoot>
-                    </table>
+                     </table>
                 </div>
             </div>
         </section>
@@ -291,22 +290,22 @@
         <section id="view-administracao" class="view-secao">
             <div class="admin-grid-layout">
                 <div class="form-admin-box">
-                    <h3 id="admin-titulo-formulario">Lançamento de Visitantes</h3>
+                     <h3 id="admin-titulo-formulario">Lançamento de Visitantes</h3>
                     <input type="hidden" id="admin-input-id" value="">
                     
                     <label>Posto Alvo:</label>
                     <select id="admin-input-posto"></select>
-                    
+                     
                     <label>Data de Registro:</label>
                     <input type="date" id="admin-input-data">
                     
-                    <label>Quantidade de Visitantes:</label>
+                     <label>Quantidade de Visitantes:</label>
                     <input type="number" id="admin-input-visitantes" placeholder="Ex: 25" min="0">
                     
                     <label>Observações:</label>
                     <input type="text" id="admin-input-observacao" placeholder="Ex: Evento corporativo ou plantão extra">
 
-                    <div id="admin-loading" class="feedback-loading">Processando dados no Firestore...</div>
+                     <div id="admin-loading" class="feedback-loading">Processando dados no Firestore...</div>
                     
                     <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
                         <button class="primary" id="admin-btn-salvar" onclick="salvarVisitanteAdmin()">Salvar Registro</button>
@@ -321,17 +320,17 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Posto</th>
+                                 <th>Posto</th>
                                 <th>Data</th>
                                 <th>Visitantes</th>
-                                <th>Observação</th>
+                                 <th>Observação</th>
                                 <th>Responsável</th>
                                 <th>Data Cadastro</th>
-                                <th>Ações</th>
+                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="corpo-administrativo">
-                            <tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Nenhum registro carregado.</td></tr>
+                             <tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Nenhum registro carregado.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -349,21 +348,21 @@
             appId: "1:458111218365:web:0f3b41ab7c2ceb7feebdd4"
         };
         firebase.initializeApp(firebaseConfig);
-        
+         
         const auth = firebase.auth();
         const fs = firebase.firestore();
         
         let rondas = []; 
         let listaPostos = [];
-        let visitorsRegistrados = []; // Vetor de sincronização em tempo real do CRUD
+        let visitorsRegistrados = []; 
         let chartFin = null;
         let postoSelecionadoAtual = "";
-        let dataFiltroAlvo = new Date();
+         let dataFiltroAlvo = new Date();
         let dataFiltroFinanceiro = new Date();
         let paginaAtualPosto = 1;
         const registrosPorPagina = 10;
         let postosFiltrados = [];
-        let usuarioLogadoPermissao = "leitor"; // Controle ACL de mutações baseado na role
+        let usuarioLogadoPermissao = "leitor";
         
         let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro')) || [
             { posto: "Zaffari Bourbon", data: "2026-05-10", motivo: "Atraso no rendimento do funcionário", horas: 2, valor: 120.00 },
@@ -380,13 +379,13 @@
                     usuarioLogadoPermissao = "admin";
                 } else {
                     usuarioLogadoPermissao = "leitor";
-                }
+                 }
                 
                 document.getElementById('secao-login').style.display = 'none';
                 document.getElementById('nav-lateral').style.display = 'flex';
                 document.getElementById('conteudo-painel').style.display = 'block';
                 ouvirDados();
-            } else {
+             } else {
                 document.getElementById('secao-login').style.display = 'flex';
                 document.getElementById('nav-lateral').style.display = 'none';
                 document.getElementById('conteudo-painel').style.display = 'none';
@@ -413,8 +412,7 @@
                 if(id === 'administracao') document.getElementById('btn-menu-admin').classList.add('active');
             }
             
-            document.getElementById('titulo-aba').innerText = id === 'administracao' ?
-                'ADMINISTRAÇÃO CORPORATIVA' : id.toUpperCase();
+            document.getElementById('titulo-aba').innerText = id === 'administracao' ? 'ADMINISTRAÇÃO CORPORATIVA' : id.toUpperCase();
             
             if(id === 'financeiro') {
                 cancelarEdicaoFinanceira();
@@ -434,22 +432,25 @@
                     return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
                 });
                 filtrarETubularPostos();
-                renderizarSeletorPostosCalor();
+                 renderizarSeletorPostosCalor();
                 atualizarDropdownsFinanceiro();
                 atualizarDropdownsAdmin();
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
             });
 
+            // CORREÇÃO: Escuta e dispara o redesenho do mapa em tempo real ao receber novas rondas de usuários
             fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
                 rondas = snap.docs.map(d => d.data());
+                if(postoSelecionadoAtual) {
+                    desenharCalor(postoSelecionadoAtual);
+                }
             });
 
-            // Listener em tempo real da nova collection de visitantes para integração direta com o Heatmap
             fs.collection('visitantes_heatmap').orderBy('criadoEm', 'desc').onSnapshot(snap => {
                 visitorsRegistrados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderizarTabelaAdmin();
                 if(postoSelecionadoAtual) {
-                    desenharCalor(postoSelecionadoAtual);
+                     desenharCalor(postoSelecionadoAtual);
                 }
             }, err => {
                 console.error("Erro ao escutar visitantes: ", err);
@@ -463,7 +464,6 @@
                 const cidade = p.cidade ? p.cidade.toLowerCase() : '';
                 return nome.includes(termoBusca) || cidade.includes(termoBusca);
             });
-
             const totalPaginas = Math.ceil(postosFiltrados.length / registrosPorPagina) || 1;
             if (paginaAtualPosto > totalPaginas) paginaAtualPosto = totalPaginas;
             document.getElementById('btn-pag-anterior').disabled = (paginaAtualPosto === 1);
@@ -525,7 +525,6 @@
             }
         }
 
-        /* CORREÇÃO APLICADA: Limpeza de resíduos de digitação na assinatura matemática */
         function alterarMes(fator) {
             dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
             if(postoSelecionadoAtual) {
@@ -540,6 +539,7 @@
             document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
         }
 
+        // CORREÇÃO OPERACIONAL COMPLETA DA FUNÇÃO DO MAPA DE CALOR
         function desenharCalor(nomePosto) {
             atualizarTextoMesAno();
             const container = document.getElementById('heatmap-container');
@@ -548,7 +548,6 @@
             
             const anoAlvo = dataFiltroAlvo.getFullYear();
             const mesAlvo = dataFiltroAlvo.getMonth();
-            
             const primeiroDiaDaSemana = new Date(anoAlvo, mesAlvo, 1).getDay();
             const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
             
@@ -557,6 +556,7 @@
                 volumetriaDiaria[d] = 0;
             }
 
+            // 1. Somar os dados de visitantes cadastrados pelo administrador
             visitorsRegistrados.forEach(v => {
                 if (v.posto === nomePosto && v.data) {
                     const partes = v.data.split('-'); 
@@ -572,25 +572,50 @@
                 }
             });
 
+            // 2. Somar em conjunto as Rondas enviadas pelos usuários comuns do aplicativo
+            rondas.forEach(r => {
+                if (r.posto === nomePosto && r.data) {
+                    const partes = r.data.split('-'); 
+                    if (partes.length === 3) {
+                        const anoReg = parseInt(partes[0], 10);
+                        const mesReg = parseInt(partes[1], 10) - 1; 
+                        const diaReg = parseInt(partes[2], 10);
+                        
+                        if (anoReg === anoAlvo && mesReg === mesAlvo) {
+                            // Se a ronda tiver campo volumétrico soma-se ele, caso contrário soma 1 por ronda efetuada
+                            const incremento = r.visitantes ? parseInt(r.visitantes, 10) : 1;
+                            volumetriaDiaria[diaReg] = (volumetriaDiaria[diaReg] || 0) + incremento;
+                        }
+                    }
+                }
+                /* Nota: Se o campo de data do banco 'rondas' for salvo como Timestamp nativo do Firebase (e não string), substitua o laço acima por:
+                const dataRonda = r.timestamp ? r.timestamp.toDate() : null;
+                if (r.posto === nomePosto && dataRonda && dataRonda.getFullYear() === anoAlvo && dataRonda.getMonth() === mesAlvo) {
+                    volumetriaDiaria[dataRonda.getDate()] += r.visitantes ? parseInt(r.visitantes, 10) : 1;
+                }
+                */
+            });
+
             for (let i = 0; i < primeiroDiaDaSemana; i++) {
                 const BlocoVazio = document.createElement('div');
                 BlocoVazio.style.visibility = 'hidden';
                 container.appendChild(BlocoVazio);
             }
 
+            // CORREÇÃO DA ESCALA: Ajustada matematicamente para encaixar idêntica à legenda CSS
             for (let dia = 1; dia <= totalDiasNoMes; dia++) {
                 const totalVisitantes = volumetriaDiaria[dia] || 0;
                 let classeIntensidade = "intensidade-0";
 
                 if (totalVisitantes === 0) {
                     classeIntensidade = "intensidade-0";
-                } else if (totalVisitantes >= 1 && totalVisitantes <= 50) {
+                } else if (totalVisitantes >= 1 && totalVisitantes <= 3) {
                     classeIntensidade = "intensidade-1";
-                } else if (totalVisitantes >= 51 && totalVisitantes <= 100) {
+                } else if (totalVisitantes >= 4 && totalVisitantes <= 7) {
                     classeIntensidade = "intensidade-2";
-                } else if (totalVisitantes >= 101 && totalVisitantes <= 200) {
+                } else if (totalVisitantes >= 8 && totalVisitantes <= 12) {
                     classeIntensidade = "intensidade-3";
-                } else if (totalVisitantes > 200) {
+                } else if (totalVisitantes >= 13) {
                     classeIntensidade = "intensidade-4";
                 }
 
@@ -635,7 +660,6 @@
             let totalHoras = 0;
             let totalValor = 0;
             const perdasPorPosto = {};
-
             registrosFinanceiros.forEach((r, index) => {
                 const partesData = r.data.split('-');
                 const anoReg = parseInt(partesData[0]);
@@ -743,16 +767,16 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Prejuízo acumulado (R$)',
+                         label: 'Prejuízo acumulado (R$)',
                         data: valores,
                         backgroundColor: '#ef4444',
                         borderRadius: 4
-                    }]
+                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                     plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true } }
                 }
             });
@@ -806,7 +830,8 @@
             }
 
             const visitantes = parseInt(visitantesInput, 10);
-            if (isNaN(visitantes) || visitors < 0) {
+            // CORREÇÃO: Variável incorreta 'visitors' alterada para 'visitantes' na verificação abaixo
+            if (isNaN(visitantes) || visitantes < 0) {
                 alert("Erro: A quantidade de visitantes não pode conter valores negativos ou nulos.");
                 return;
             }
@@ -820,7 +845,6 @@
                 responsavel: responsavelEmail,
                 criadoEm: firebase.firestore.FieldValue.serverTimestamp()
             };
-
             try {
                 if (idRegistro === "") {
                     await fs.collection('visitantes_heatmap').add(payload);
@@ -867,7 +891,7 @@
                 mostrarLoadingAdmin(true);
                 try {
                     await fs.collection('visitantes_heatmap').doc(id).delete();
-                    alert("Sucesso: Registro removido com sucesso.");
+                    alert("Sucesso: Registro removed com sucesso.");
                     limparFormularioAdmin();
                 } catch (error) {
                     console.error("Erro ao deletar registro no Firestore: ", error);
@@ -893,7 +917,7 @@
                 let dataCadastro = "N/A";
                 
                 if (v.criadoEm && typeof v.criadoEm.toDate === 'function') {
-                    dataCadastro = v.criadoEm.toDate().toLocaleString('pt-BR');
+                     dataCadastro = v.criadoEm.toDate().toLocaleString('pt-BR');
                 }
 
                 const botoesAcao = usuarioLogadoPermissao === "admin" ? 
@@ -904,13 +928,13 @@
                 tabelaCorpo.innerHTML += `<tr>
                     <td style="font-weight:600;">${v.posto}</td>
                     <td>${dataFormatada}</td>
-                    <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:bold;">${v.visitantes}</span></td>
+                     <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:bold;">${v.visitantes}</span></td>
                     <td>${v.observacao || '<span style="color:#cbd5e1;">-</span>'}</td>
                     <td><small>${v.responsavel}</small></td>
                     <td><small>${dataCadastro}</small></td>
                     <td>${botoesAcao}</td>
                 </tr>`;
-            });
+             });
         }
     </script>
 </body>
