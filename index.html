@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerência - Sentinela Ops</title>
     
+    <!-- Bibliotecas do Firebase (Versão Compatibilidade v9) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Bibliotecas Visuais Auxiliares -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -20,7 +23,7 @@
             --accent: #2563eb;
             --bg: #f4f7f6;
             
-            /* Cores Ajustadas Manualmente */
+            /* Cores de Intensidade Ajustadas */
             --calor-0: #f3f4f6;
             --calor-1: #fef3c7;
             --calor-2: #fcd34d;
@@ -145,7 +148,7 @@
 
                 <div id="admin-controls-calor" style="display:none; background: #fffbeb; border: 1px solid #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     <h3 style="margin-top:0; color: #92400e; font-size: 16px;">🛠️ Painel do Administrador: Inserir Visitas</h3>
-                    <p style="font-size: 12px; color: #b45309; margin-bottom: 15px;">Use este formulário para registrar visitas retroativas ou manuais que aparecerão no Mapa de Calor.</p>
+                    <p style="font-size: 12px; color: #b45309; margin-bottom: 15px;">Use este formulário para registar visitas retroativas ou manuais que aparecerão no Mapa de Calor.</p>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
                         <div>
@@ -165,8 +168,7 @@
                 </div>
 
                 <div id="container-mapa" style="background: white; padding: 10px;">
-                    <div class="calendar-grid" id="calendario-calor">
-                        </div>
+                    <div class="calendar-grid" id="calendario-calor"></div>
                 </div>
 
                 <div class="legenda-calor">
@@ -260,16 +262,20 @@
     </main>
 
     <script>
-        // CONFIGURAÇÃO FIREBASE
+        // =========================================================================
+        //  CONFIGURAÇÃO DO FIREBASE (ATENÇÃO: SUBSTITUA COM OS SEUS DADOS REAIS)
+        // =========================================================================
+        // Para obter estes dados, vá ao Console do Firebase > Configurações do Projeto
         const firebaseConfig = {
-            apiKey: "AIzaSyAoO_...",
-            authDomain: "sentinela-ops-...",
-            projectId: "sentinela-ops-...",
-            storageBucket: "sentinela-ops-...",
-            messagingSenderId: "...",
-            appId: "..."
+            apiKey: "SUBSTITUA_PELA_SUA_API_KEY_COMPLETA_AQUI_SEM_RETICENCIAS",
+            authDomain: "SUBSTITUA_PELO_SEU_AUTH_DOMAIN_AQUI.firebaseapp.com",
+            projectId: "SUBSTITUA_PELO_SEU_PROJECT_ID_AQUI",
+            storageBucket: "SUBSTITUA_PELO_SEU_STORAGE_BUCKET_AQUI.appspot.com",
+            messagingSenderId: "SUBSTITUA_PELO_SEU_SENDER_ID_AQUI",
+            appId: "SUBSTITUA_PELO_SEU_APP_ID_AQUI"
         };
 
+        // Inicialização do Aplicativo Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const fs = firebase.firestore();
@@ -277,36 +283,58 @@
         let dadosRondas = [];
         let listaPostos = [];
 
-        // LOGIN
+        // FUNÇÃO DE LOGIN
         async function fazerLogin() {
-            const e = document.getElementById('email').value;
+            const e = document.getElementById('email').value.trim();
             const s = document.getElementById('senha').value;
+            
+            if (!e || !s) {
+                alert("Por favor, preencha todos os campos.");
+                return;
+            }
+
             try {
                 await auth.signInWithEmailAndPassword(e, s);
             } catch (err) {
-                alert("Erro ao acessar: " + err.message);
+                // Tratamento detalhado de erros comuns
+                if (err.code === "auth/api-key-not-valid") {
+                    alert("Erro interno: A chave de API do Firebase configurada é inválida ou incompleta.");
+                } else if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+                    alert("Utilizador ou senha incorretos.");
+                } else {
+                    alert("Erro ao aceder: " + err.message);
+                }
             }
         }
 
-        // OBSERVAR LOGIN E PERMISSÕES
+        // CONTROLADOR DE ESTADO DE AUTENTICAÇÃO E PERMISSÕES (FIRESTORE)
         auth.onAuthStateChanged(async user => {
             if (user) {
-                const doc = await fs.collection("usuarios").doc(user.uid).get();
-                // Verificação de Administrador
-                const isAdmin = (doc.exists && doc.data().role === "admin") || ["admin@sentinela.com", "gerencia@sentinela.com"].includes(user.email);
+                try {
+                    // Tenta ler o perfil do utilizador na coleção do Firestore
+                    const doc = await fs.collection("usuarios").doc(user.uid).get();
+                    
+                    // Validação de Admin (Seja pelo perfil no Firestore, ou e-mail administrativo direto)
+                    const isAdmin = (doc.exists && doc.data().role === "admin") || 
+                                    ["admin@sentinela.com", "gerencia@sentinela.com"].includes(user.email);
 
-                if (isAdmin) {
-                    document.getElementById('secao-login').style.display = 'none';
-                    document.getElementById('nav-lateral').style.display = 'flex';
-                    document.getElementById('conteudo-painel').style.display = 'block';
-                    
-                    // MOSTRAR CONTROLES DE ADM NO MAPA
-                    document.getElementById('admin-controls-calor').style.display = 'block';
-                    
-                    carregarPostos();
-                    ouvirDados();
-                } else {
-                    alert("Acesso restrito à gerência.");
+                    if (isAdmin) {
+                        document.getElementById('secao-login').style.display = 'none';
+                        document.getElementById('nav-lateral').style.display = 'flex';
+                        document.getElementById('conteudo-painel').style.display = 'block';
+                        
+                        // Exibe os controlos administrativos
+                        document.getElementById('admin-controls-calor').style.display = 'block';
+                        
+                        carregarPostos();
+                        ouvirDados();
+                    } else {
+                        alert("Acesso restrito à gerência.");
+                        auth.signOut();
+                    }
+                } catch (error) {
+                    console.error("Erro ao validar permissões:", error);
+                    alert("Erro ao validar o seu utilizador com o banco de dados. Verifique as regras de segurança.");
                     auth.signOut();
                 }
             } else {
@@ -333,10 +361,12 @@
                     selCalor.innerHTML += opt;
                     selFin.innerHTML += opt;
                 });
+            }, error => {
+                console.error("Erro nas Regras de Segurança ao ler 'postos':", error);
             });
         }
 
-        // OUVIR DADOS EM TEMPO REAL
+        // MONITORIZAR DADOS EM TEMPO REAL
         function ouvirDados() {
             fs.collection('rondas').orderBy('timestamp', 'desc').limit(500).onSnapshot(snap => {
                 dadosRondas = [];
@@ -345,10 +375,12 @@
                 atualizarTabelaRondas();
                 atualizarMapaCalor();
                 atualizarFinanceiro();
+            }, error => {
+                console.error("Erro nas Regras de Segurança ao ler 'rondas':", error);
             });
         }
 
-        // NAVEGAÇÃO
+        // NAVEGAÇÃO ENTRE COMPONENTES
         function mostrarView(id) {
             document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
             document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
@@ -409,6 +441,7 @@
             corpo.innerHTML = '';
 
             let filtrados = dadosRondas.filter(r => {
+                if (!r.data) return false;
                 const partes = r.data.split('/');
                 return (posto === "" || r.posto === posto) && parseInt(partes[1]) === (mes + 1);
             });
@@ -421,9 +454,9 @@
 
                 corpo.innerHTML += `
                     <tr>
-                        <td>${r.data} ${r.hora}</td>
+                        <td>${r.data} ${r.hora || ''}</td>
                         <td>${r.posto}</td>
-                        <td>${r.colaborador}</td>
+                        <td>${r.colaborador || 'Não informado'}</td>
                         <td>${km} KM</td>
                         <td>R$ ${custo.toFixed(2)}</td>
                     </tr>
@@ -441,22 +474,22 @@
             dadosRondas.slice(0, 50).forEach(r => {
                 corpo.innerHTML += `
                     <tr>
-                        <td>${r.data} ${r.hora}</td>
+                        <td>${r.data} ${r.hora || ''}</td>
                         <td>${r.posto}</td>
-                        <td>${r.colaborador}</td>
-                        <td>${r.motivo}</td>
-                        <td>${r.km}</td>
+                        <td>${r.colaborador || 'Não informado'}</td>
+                        <td>${r.motivo || 'Nenhum'}</td>
+                        <td>${r.km || 0}</td>
                     </tr>
                 `;
             });
         }
 
-        // FUNÇÃO DE INSERÇÃO MANUAL (NOVA)
+        // FUNÇÃO DE INSERÇÃO MANUAL
         async function inserirVisitaManual() {
             const posto = document.getElementById('sel-posto-calor').value;
             const dataInput = document.getElementById('adm-data-visita').value;
-            const colaborador = document.getElementById('adm-nome-colaborador').value || "Administrador";
-            const motivo = document.getElementById('adm-motivo-visita').value;
+            const colaborador = document.getElementById('adm-nome-colaborador').value.trim() || "Administrador";
+            const motivo = document.getElementById('adm-motivo-visita').value.trim();
 
             if (!posto) return alert("Selecione um posto no menu acima primeiro!");
             if (!dataInput) return alert("Selecione a data da visita!");
@@ -477,11 +510,11 @@
 
             try {
                 await fs.collection('rondas').add(novaRonda);
-                alert("Visita registrada com sucesso!");
+                alert("Visita registada com sucesso!");
                 document.getElementById('adm-data-visita').value = "";
             } catch (erro) {
                 console.error("Erro ao inserir:", erro);
-                alert("Erro ao salvar no banco de dados.");
+                alert("Erro ao gravar na base de dados. Verifique se o utilizador está devidamente configurado como Administrador.");
             }
         }
 
