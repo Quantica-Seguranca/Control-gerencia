@@ -119,6 +119,18 @@
         .form-admin-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
         .admin-painel-tabela { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
         .feedback-loading { display: none; font-size: 13px; color: var(--accent); font-weight: bold; margin-top: 10px; text-align: center; }
+
+        /* NOVOS ESTILOS - VIEW CONTROLE DE COMBUSTÍVEL */
+        .combustivel-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .coluna-esquerda-combustivel { display: flex; flex-direction: column; gap: 20px; }
+        .form-combustivel-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-combustivel-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-combustivel-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .combustivel-painel-relatorio { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        .grafico-combustivel-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 25px; }
+        .card-combustivel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #f59e0b; }
+        .card-combustivel h3 { margin: 0; font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+        .card-combustivel .valor { font-size: 24px; font-weight: bold; margin-top: 5px; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -140,6 +152,7 @@
         <button class="nav-btn" onclick="alternarVisao('calor')">🔥 Mapa de Calor</button>
         <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
         <button class="nav-btn" id="btn-menu-admin" onclick="alternarVisao('administracao')">👑 Administração</button>
+        <button class="nav-btn" id="btn-menu-combustivel" onclick="alternarVisao('combustivel')">⛽ Combustível</button>
         <button class="nav-btn btn-logout" onclick="fazerLogout()">Sair</button>
     </nav>
 
@@ -152,14 +165,14 @@
         <section id="view-postos" class="view-secao active">
             <div class="card-grid" style="margin-bottom: 20px;">
                 <div class="card">
-                     <h3>Total de Postos Registrados</h3>
+                    <h3>Total de Postos Registrados</h3>
                     <div class="valor" id="postos-p-total">0</div>
                 </div>
             </div>
 
             <div class="tabela-controles">
                 <div class="busca-container">
-                     <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
+                    <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
                 </div>
                 <div class="paginacao-container">
                     <button class="paginacao-btn" id="btn-pag-anterior" onclick="mudarPaginaPosto(-1)">◀</button>
@@ -183,7 +196,7 @@
                     </select>
                 </div>
 
-                 <div class="heatmap-calendario-box" id="area-impressao-pdf">
+                <div class="heatmap-calendario-box" id="area-impressao-pdf">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
                         <div>
                             <h3 id="nome-posto-selecionado" style="margin:0; color:var(--primary);">Nenhum posto selecionado</h3>
@@ -214,7 +227,7 @@
         <section id="view-financeiro" class="view-secao">
             <div class="financeiro-grid-layout">
                 <div class="coluna-esquerda-financeiro">
-                     <div class="form-financeiro-box">
+                    <div class="form-financeiro-box">
                         <h3 id="fin-titulo-formulario">Lançamento de Horas</h3>
                         <input type="hidden" id="fin-input-index" value="">
                         
@@ -222,7 +235,7 @@
                         <select id="fin-input-posto"></select>
                         
                         <label>Data da Ocorrência:</label>
-                         <input type="date" id="fin-input-data">
+                        <input type="date" id="fin-input-data">
                         
                         <label>Quantidade de Horas:</label>
                         <input type="number" id="fin-input-horas" placeholder="Ex: 2" min="1">
@@ -230,7 +243,7 @@
                         <label>Valor Desperdiçado (R$):</label>
                         <input type="number" id="fin-input-valor" placeholder="Ex: 150.00" step="0.01">
                         
-                         <label>Motivo da Ineficiência (Editável):</label>
+                        <label>Motivo da Ineficiência (Editável):</label>
                         <input type="text" id="fin-input-motivo" placeholder="Ex: Faltou / Atraso na rendição">
                         
                         <div style="display:flex; gap:10px;">
@@ -247,7 +260,7 @@
                     </div>
                 </div>
 
-                 <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
+                <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
                         <div>
                             <h2 style="margin:0; color:var(--primary); font-size:20px;">Relatório de Horas Ineficientes</h2>
@@ -260,25 +273,25 @@
                         <button class="secondary" onclick="alterarMesFinanceiro(-1)">◀ Mês Anterior</button>
                         <div class="heatmap-mes-titulo" id="fin-mes-ano-texto">Mês Corrente</div>
                         <button class="secondary" onclick="alterarMesFinanceiro(1)">Próximo Mês ▶</button>
-                     </div>
+                    </div>
 
                     <table>
                         <thead>
                             <tr>
-                                 <th>Posto</th>
+                                <th>Posto</th>
                                 <th>Data</th>
                                 <th>Motivo da Ineficiência</th>
-                                 <th>Horas</th>
+                                <th>Horas</th>
                                 <th>Valor Prejuízo</th>
                                 <th data-html2pdf-ignore="true">Ações</th>
-                             </tr>
+                            </tr>
                         </thead>
                         <tbody id="corpo-financeiro"></tbody>
                         <tfoot>
-                             <tr class="total-row">
+                            <tr class="total-row">
                                 <td colspan="3" style="text-align:right;">Impacto Financeiro Total:</td>
                                 <td id="fin-total-horas">0h</td>
-                                 <td id="fin-total-valor">R$ 0,00</td>
+                                <td id="fin-total-valor">R$ 0,00</td>
                                 <td data-html2pdf-ignore="true"></td>
                             </tr>
                         </tfoot>
@@ -290,7 +303,7 @@
         <section id="view-administracao" class="view-secao">
             <div class="admin-grid-layout">
                 <div class="form-admin-box">
-                     <h3 id="admin-titulo-formulario">Lançamento de Visitantes</h3>
+                    <h3 id="admin-titulo-formulario">Lançamento de Visitantes</h3>
                     <input type="hidden" id="admin-input-id" value="">
                     
                     <label>Posto Alvo:</label>
@@ -299,7 +312,7 @@
                     <label>Data de Registro:</label>
                     <input type="date" id="admin-input-data">
                     
-                     <label>Quantidade de Visitantes:</label>
+                    <label>Quantidade de Visitantes:</label>
                     <input type="number" id="admin-input-visitantes" placeholder="Ex: 25" min="0">
                     
                     <label>Observações:</label>
@@ -320,19 +333,147 @@
                     <table>
                         <thead>
                             <tr>
-                                 <th>Posto</th>
+                                <th>Posto</th>
                                 <th>Data</th>
                                 <th>Visitantes</th>
-                                 <th>Observação</th>
+                                <th>Observação</th>
                                 <th>Responsável</th>
                                 <th>Data Cadastro</th>
-                                 <th>Ações</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="corpo-administrativo">
                              <tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Nenhum registro carregado.</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-combustivel" class="view-secao">
+            <div class="card-grid" style="margin-bottom: 20px;" id="cards-combustivel">
+                <div class="card card-combustivel">
+                    <h3>Total Gasto Mensal</h3>
+                    <div class="valor" id="ind-comb-gasto">R$ 0,00</div>
+                </div>
+                <div class="card card-combustivel">
+                    <h3>Abastecimentos no Mês</h3>
+                    <div class="valor" id="ind-comb-qtd">0</div>
+                </div>
+                <div class="card card-combustivel">
+                    <h3>Viatura Maior Consumo</h3>
+                    <div class="valor" id="ind-comb-maior">-</div>
+                </div>
+                <div class="card card-combustivel">
+                    <h3>Média de Consumo (R$)</h3>
+                    <div class="valor" id="ind-comb-media">R$ 0,00</div>
+                </div>
+            </div>
+
+            <div class="combustivel-grid-layout">
+                <div class="coluna-esquerda-combustivel">
+                    <div class="form-combustivel-box">
+                        <h3 id="comb-titulo-form">Cadastrar Abastecimento</h3>
+                        <input type="hidden" id="comb-input-index" value="">
+                        
+                        <label>Nome da Viatura:</label>
+                        <input type="text" id="comb-input-viatura" placeholder="Ex: Viatura 01">
+                        
+                        <label>Placa:</label>
+                        <input type="text" id="comb-input-placa" placeholder="Ex: ABC-1234">
+                        
+                        <label>Cartão de Combustível:</label>
+                        <input type="text" id="comb-input-cartao" placeholder="Ex: Cartão Final 4321">
+                        
+                        <label>Data do Abastecimento:</label>
+                        <input type="date" id="comb-input-data">
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div>
+                                <label>Quantidade (Litros):</label>
+                                <input type="number" id="comb-input-litros" placeholder="Ex: 40" step="0.01" min="0.01">
+                            </div>
+                            <div>
+                                <label>Valor Abastecido (R$):</label>
+                                <input type="number" id="comb-input-valor" placeholder="Ex: 250.00" step="0.01" min="0.01">
+                            </div>
+                        </div>
+                        
+                        <label>KM Atual:</label>
+                        <input type="number" id="comb-input-km" placeholder="Ex: 54000" min="1">
+                        
+                        <label>Tipo de Combustível:</label>
+                        <select id="comb-input-tipo">
+                            <option value="Gasolina Comum">Gasolina Comum</option>
+                            <option value="Gasolina Aditivada">Gasolina Aditivada</option>
+                            <option value="Etanol">Etanol</option>
+                            <option value="Diesel S10">Diesel S10</option>
+                            <option value="Diesel Comum">Diesel Comum</option>
+                            <option value="GNV">GNV</option>
+                        </select>
+                        
+                        <label>Observação (Opcional):</label>
+                        <input type="text" id="comb-input-obs" placeholder="Ex: Abastecimento em viagem">
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="primary" style="margin-top:10px; flex:1;" id="comb-btn-salvar" onclick="salvarRegistroCombustivel()">Salvar Registro</button>
+                            <button class="secondary" style="margin-top:10px; display:none;" id="comb-btn-cancelar" onclick="cancelarEdicaoCombustivel()">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:25px;">
+                    <div class="combustivel-painel-relatorio" id="area-impressao-combustivel">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+                            <div>
+                                <h2 style="margin:0; color:var(--primary); font-size:20px;">Histórico de Consumo</h2>
+                                <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Relatório e controle gerencial das viaturas corporativas.</p>
+                            </div>
+                            <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarCombustivelPDF()">📄 Exportar Relatório</button>
+                        </div>
+
+                        <div class="heatmap-controles" data-html2pdf-ignore="true">
+                            <button class="secondary" onclick="alterarMesCombustivel(-1)">◀ Mês Anterior</button>
+                            <div class="heatmap-mes-titulo" id="comb-mes-ano-texto">Mês Corrente</div>
+                            <button class="secondary" onclick="alterarMesCombustivel(1)">Próximo Mês ▶</button>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Viatura</th>
+                                    <th>Placa</th>
+                                    <th>Cartão</th>
+                                    <th>Data</th>
+                                    <th>Litros</th>
+                                    <th>Valor</th>
+                                    <th>KM</th>
+                                    <th>Combustível</th>
+                                    <th>Observação</th>
+                                    <th data-html2pdf-ignore="true">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpo-combustivel"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="grafico-combustivel-box" data-html2pdf-ignore="true">
+                        <h3 style="margin-top:0; color:var(--primary); font-size:14px; text-transform:uppercase; margin-bottom: 20px;">📈 Indicadores de Desempenho</h3>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:20px;">
+                            <div style="height:220px; position:relative; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+                                <h4 style="text-align:center; font-size:11px; color:var(--secondary); margin-top:0;">Gasto por Viatura</h4>
+                                <canvas id="chartCombustivelGasto"></canvas>
+                            </div>
+                            <div style="height:220px; position:relative; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+                                <h4 style="text-align:center; font-size:11px; color:var(--secondary); margin-top:0;">Consumo Mensal (Litros/Dia)</h4>
+                                <canvas id="chartCombustivelLitros"></canvas>
+                            </div>
+                            <div style="height:220px; position:relative; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+                                <h4 style="text-align:center; font-size:11px; color:var(--secondary); margin-top:0;">Ranking de Consumo</h4>
+                                <canvas id="chartCombustivelRanking"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -357,17 +498,24 @@
         let visitorsRegistrados = []; 
         let chartFin = null;
         let postoSelecionadoAtual = "";
-         let dataFiltroAlvo = new Date();
+         
+        let dataFiltroAlvo = new Date();
         let dataFiltroFinanceiro = new Date();
         let paginaAtualPosto = 1;
         const registrosPorPagina = 10;
         let postosFiltrados = [];
         let usuarioLogadoPermissao = "leitor";
-        
         let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro')) || [
             { posto: "Zaffari Bourbon", data: "2026-05-10", motivo: "Atraso no rendimento do funcionário", horas: 2, valor: 120.00 },
             { posto: "Shopping João Pessoa", data: "2026-05-12", motivo: "Falta injustificada de colaborador", horas: 4, valor: 250.00 }
         ];
+
+        /* VARIÁVEIS OBRIGATÓRIAS - COMBUSTÍVEL */
+        let registrosCombustivel = JSON.parse(localStorage.getItem('sentinela_combustivel')) || [];
+        let chartCombustivel = null;
+        let chartCombustivelLitros = null;
+        let chartCombustivelRanking = null;
+        let dataFiltroCombustivel = new Date();
 
         auth.onAuthStateChanged(async user => {
             if (user) {
@@ -379,13 +527,13 @@
                     usuarioLogadoPermissao = "admin";
                 } else {
                     usuarioLogadoPermissao = "leitor";
-                 }
+                }
                 
                 document.getElementById('secao-login').style.display = 'none';
                 document.getElementById('nav-lateral').style.display = 'flex';
                 document.getElementById('conteudo-painel').style.display = 'block';
                 ouvirDados();
-             } else {
+            } else {
                 document.getElementById('secao-login').style.display = 'flex';
                 document.getElementById('nav-lateral').style.display = 'none';
                 document.getElementById('conteudo-painel').style.display = 'none';
@@ -410,9 +558,13 @@
                 window.event.currentTarget.classList.add('active');
             } else {
                 if(id === 'administracao') document.getElementById('btn-menu-admin').classList.add('active');
+                if(id === 'combustivel') document.getElementById('btn-menu-combustivel').classList.add('active');
             }
             
-            document.getElementById('titulo-aba').innerText = id === 'administracao' ? 'ADMINISTRAÇÃO CORPORATIVA' : id.toUpperCase();
+            let tituloAba = id.toUpperCase();
+            if(id === 'administracao') tituloAba = 'ADMINISTRAÇÃO CORPORATIVA';
+            if(id === 'combustivel') tituloAba = 'CONTROLE DE COMBUSTÍVEL';
+            document.getElementById('titulo-aba').innerText = tituloAba;
             
             if(id === 'financeiro') {
                 cancelarEdicaoFinanceira();
@@ -420,6 +572,10 @@
             }
             if(id === 'administracao') {
                 limparFormularioAdmin();
+            }
+            if(id === 'combustivel') {
+                cancelarEdicaoCombustivel();
+                renderizarCombustivel();
             }
         }
 
@@ -432,13 +588,12 @@
                     return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
                 });
                 filtrarETubularPostos();
-                 renderizarSeletorPostosCalor();
+                renderizarSeletorPostosCalor();
                 atualizarDropdownsFinanceiro();
                 atualizarDropdownsAdmin();
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
             });
 
-            // CORREÇÃO: Escuta e dispara o redesenho do mapa em tempo real ao receber novas rondas de usuários
             fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
                 rondas = snap.docs.map(d => d.data());
                 if(postoSelecionadoAtual) {
@@ -539,7 +694,6 @@
             document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
         }
 
-        // CORREÇÃO OPERACIONAL COMPLETA DA FUNÇÃO DO MAPA DE CALOR
         function desenharCalor(nomePosto) {
             atualizarTextoMesAno();
             const container = document.getElementById('heatmap-container');
@@ -556,7 +710,6 @@
                 volumetriaDiaria[d] = 0;
             }
 
-            // 1. Somar os dados de visitantes cadastrados pelo administrador
             visitorsRegistrados.forEach(v => {
                 if (v.posto === nomePosto && v.data) {
                     const partes = v.data.split('-'); 
@@ -572,7 +725,6 @@
                 }
             });
 
-            // 2. Somar em conjunto as Rondas enviadas pelos usuários comuns do aplicativo
             rondas.forEach(r => {
                 if (r.posto === nomePosto && r.data) {
                     const partes = r.data.split('-'); 
@@ -582,18 +734,11 @@
                         const diaReg = parseInt(partes[2], 10);
                         
                         if (anoReg === anoAlvo && mesReg === mesAlvo) {
-                            // Se a ronda tiver campo volumétrico soma-se ele, caso contrário soma 1 por ronda efetuada
                             const incremento = r.visitantes ? parseInt(r.visitantes, 10) : 1;
                             volumetriaDiaria[diaReg] = (volumetriaDiaria[diaReg] || 0) + incremento;
                         }
                     }
                 }
-                /* Nota: Se o campo de data do banco 'rondas' for salvo como Timestamp nativo do Firebase (e não string), substitua o laço acima por:
-                const dataRonda = r.timestamp ? r.timestamp.toDate() : null;
-                if (r.posto === nomePosto && dataRonda && dataRonda.getFullYear() === anoAlvo && dataRonda.getMonth() === mesAlvo) {
-                    volumetriaDiaria[dataRonda.getDate()] += r.visitantes ? parseInt(r.visitantes, 10) : 1;
-                }
-                */
             });
 
             for (let i = 0; i < primeiroDiaDaSemana; i++) {
@@ -602,7 +747,6 @@
                 container.appendChild(BlocoVazio);
             }
 
-            // CORREÇÃO DA ESCALA: Ajustada matematicamente para encaixar idêntica à legenda CSS
             for (let dia = 1; dia <= totalDiasNoMes; dia++) {
                 const totalVisitantes = volumetriaDiaria[dia] || 0;
                 let classeIntensidade = "intensidade-0";
@@ -660,6 +804,7 @@
             let totalHoras = 0;
             let totalValor = 0;
             const perdasPorPosto = {};
+            
             registrosFinanceiros.forEach((r, index) => {
                 const partesData = r.data.split('-');
                 const anoReg = parseInt(partesData[0]);
@@ -767,16 +912,16 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                         label: 'Prejuízo acumulado (R$)',
+                        label: 'Prejuízo acumulado (R$)',
                         data: valores,
                         backgroundColor: '#ef4444',
                         borderRadius: 4
-                     }]
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                     plugins: { legend: { display: false } },
+                    plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true } }
                 }
             });
@@ -830,7 +975,6 @@
             }
 
             const visitantes = parseInt(visitantesInput, 10);
-            // CORREÇÃO: Variável incorreta 'visitors' alterada para 'visitantes' na verificação abaixo
             if (isNaN(visitantes) || visitantes < 0) {
                 alert("Erro: A quantidade de visitantes não pode conter valores negativos ou nulos.");
                 return;
@@ -917,24 +1061,252 @@
                 let dataCadastro = "N/A";
                 
                 if (v.criadoEm && typeof v.criadoEm.toDate === 'function') {
-                     dataCadastro = v.criadoEm.toDate().toLocaleString('pt-BR');
+                    dataCadastro = v.criadoEm.toDate().toLocaleString('pt-BR');
                 }
 
                 const botoesAcao = usuarioLogadoPermissao === "admin" ? 
                     `<button class="btn-acao btn-editar" onclick="carregarEdicaoAdmin('${v.id}')">Editar</button>
-                     <button class="btn-acao btn-excluir" onclick="excluirRegistroAdmin('${v.id}')">Excluir</button>` : 
+                    <button class="btn-acao btn-excluir" onclick="excluirRegistroAdmin('${v.id}')">Excluir</button>` : 
                     `<span style="color:#94a3b8; font-size:12px; font-style:italic;">Apenas Leitura</span>`;
 
                 tabelaCorpo.innerHTML += `<tr>
                     <td style="font-weight:600;">${v.posto}</td>
                     <td>${dataFormatada}</td>
-                     <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:bold;">${v.visitantes}</span></td>
+                    <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:bold;">${v.visitantes}</span></td>
                     <td>${v.observacao || '<span style="color:#cbd5e1;">-</span>'}</td>
                     <td><small>${v.responsavel}</small></td>
                     <td><small>${dataCadastro}</small></td>
                     <td>${botoesAcao}</td>
                 </tr>`;
              });
+        }
+
+        /* ----------------------------------------------------
+           FUNÇÕES DE INTEGRAÇÃO DA NOVA VIEW COMBUSTÍVEL
+        ----------------------------------------------------- */
+
+        function alterarMesCombustivel(fator) {
+            dataFiltroCombustivel.setMonth(dataFiltroCombustivel.getMonth() + fator);
+            renderizarCombustivel();
+        }
+
+        function renderizarCombustivel() {
+            const textoMesAno = dataFiltroCombustivel.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
+            document.getElementById('comb-mes-ano-texto').innerText = textoMesAno;
+            
+            const anoAlvo = dataFiltroCombustivel.getFullYear();
+            const mesAlvo = dataFiltroCombustivel.getMonth();
+            const corpo = document.getElementById('corpo-combustivel');
+            corpo.innerHTML = "";
+            
+            let totalGastoMes = 0;
+            let totalLitrosMes = 0;
+            const gastoPorViatura = {};
+            const litrosPorViatura = {};
+            let registrosFiltradosNoMes = [];
+
+            registrosCombustivel.forEach((r, index) => {
+                const partesData = r.data.split('-');
+                if(partesData.length === 3) {
+                    const anoReg = parseInt(partesData[0], 10);
+                    const mesReg = parseInt(partesData[1], 10) - 1;
+                    
+                    if (anoReg === anoAlvo && mesReg === mesAlvo) {
+                        registrosFiltradosNoMes.push(r);
+                        totalGastoMes += parseFloat(r.valor);
+                        totalLitrosMes += parseFloat(r.litros);
+                        
+                        gastoPorViatura[r.viatura] = (gastoPorViatura[r.viatura] || 0) + parseFloat(r.valor);
+                        litrosPorViatura[r.viatura] = (litrosPorViatura[r.viatura] || 0) + parseFloat(r.litros);
+                        
+                        corpo.innerHTML += `<tr>
+                            <td>${r.viatura}</td>
+                            <td>${r.placa}</td>
+                            <td>${r.cartao}</td>
+                            <td>${partesData[2]}/${partesData[1]}/${partesData[0]}</td>
+                            <td>${r.litros} L</td>
+                            <td>R$ ${parseFloat(r.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                            <td>${r.km}</td>
+                            <td>${r.tipo}</td>
+                            <td>${r.observacao || '-'}</td>
+                            <td data-html2pdf-ignore="true">
+                                <button class="btn-acao btn-editar" onclick="carregarEdicaoCombustivel(${index})">Editar</button>
+                                <button class="btn-acao btn-excluir" onclick="excluirRegistroCombustivel(${index})">Excluir</button>
+                            </td>
+                        </tr>`;
+                    }
+                }
+            });
+
+            // Atualização dos Indicadores
+            let maiorViatura = "-";
+            let maxConsumo = 0;
+            for(const [v, gasto] of Object.entries(gastoPorViatura)) {
+                if(gasto > maxConsumo) { maxConsumo = gasto; maiorViatura = v; }
+            }
+            
+            const mediaMensal = registrosFiltradosNoMes.length > 0 ? (totalGastoMes / registrosFiltradosNoMes.length) : 0;
+
+            document.getElementById('ind-comb-gasto').innerText = `R$ ${totalGastoMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            document.getElementById('ind-comb-qtd').innerText = registrosFiltradosNoMes.length;
+            document.getElementById('ind-comb-maior').innerText = maiorViatura;
+            document.getElementById('ind-comb-media').innerText = `R$ ${mediaMensal.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+
+            desenharGraficoCombustivel(gastoPorViatura, litrosPorViatura, registrosFiltradosNoMes, anoAlvo, mesAlvo);
+        }
+
+        function salvarRegistroCombustivel() {
+            const index = document.getElementById('comb-input-index').value;
+            const viatura = document.getElementById('comb-input-viatura').value.trim();
+            const placa = document.getElementById('comb-input-placa').value.trim();
+            const cartao = document.getElementById('comb-input-cartao').value.trim();
+            const data = document.getElementById('comb-input-data').value;
+            const litros = parseFloat(document.getElementById('comb-input-litros').value);
+            const valor = parseFloat(document.getElementById('comb-input-valor').value);
+            const km = parseInt(document.getElementById('comb-input-km').value, 10);
+            const tipo = document.getElementById('comb-input-tipo').value;
+            const observacao = document.getElementById('comb-input-obs').value.trim();
+
+            if(!viatura || !placa || !cartao || !data || !tipo) {
+                alert("Bloqueio de Validação: Preencha todos os campos obrigatórios textuais e de data.");
+                return;
+            }
+
+            if(isNaN(litros) || litros <= 0 || isNaN(valor) || valor < 0 || isNaN(km) || km <= 0) {
+                alert("Bloqueio de Validação: Valores numéricos inválidos. O sistema impede litros zerados, valores negativos ou KM inválido.");
+                return;
+            }
+
+            const registro = { viatura, placa, cartao, data, litros, valor, km, tipo, observacao };
+
+            if(index === "") {
+                registrosCombustivel.push(registro);
+            } else {
+                registrosCombustivel[parseInt(index, 10)] = registro;
+            }
+
+            localStorage.setItem('sentinela_combustivel', JSON.stringify(registrosCombustivel));
+            cancelarEdicaoCombustivel();
+            renderizarCombustivel();
+        }
+
+        function carregarEdicaoCombustivel(index) {
+            const r = registrosCombustivel[index];
+            if(!r) return;
+            
+            document.getElementById('comb-input-index').value = index;
+            document.getElementById('comb-input-viatura').value = r.viatura;
+            document.getElementById('comb-input-placa').value = r.placa;
+            document.getElementById('comb-input-cartao').value = r.cartao;
+            document.getElementById('comb-input-data').value = r.data;
+            document.getElementById('comb-input-litros').value = r.litros;
+            document.getElementById('comb-input-valor').value = r.valor;
+            document.getElementById('comb-input-km').value = r.km;
+            document.getElementById('comb-input-tipo').value = r.tipo;
+            document.getElementById('comb-input-obs').value = r.observacao || "";
+            
+            document.getElementById('comb-titulo-form').innerText = "Editar Abastecimento";
+            document.getElementById('comb-btn-salvar').innerText = "Atualizar Registro";
+            document.getElementById('comb-btn-cancelar').style.display = "block";
+        }
+
+        function cancelarEdicaoCombustivel() {
+            document.getElementById('comb-input-index').value = "";
+            document.getElementById('comb-input-viatura').value = "";
+            document.getElementById('comb-input-placa').value = "";
+            document.getElementById('comb-input-cartao').value = "";
+            document.getElementById('comb-input-data').value = "";
+            document.getElementById('comb-input-litros').value = "";
+            document.getElementById('comb-input-valor').value = "";
+            document.getElementById('comb-input-km').value = "";
+            document.getElementById('comb-input-obs').value = "";
+            
+            document.getElementById('comb-titulo-form').innerText = "Cadastrar Abastecimento";
+            document.getElementById('comb-btn-salvar').innerText = "Salvar Registro";
+            document.getElementById('comb-btn-cancelar').style.display = "none";
+        }
+
+        function excluirRegistroCombustivel(index) {
+            if(confirm("Confirmação: Deseja excluir permanentemente este registro de abastecimento?")) {
+                registrosCombustivel.splice(index, 1);
+                localStorage.setItem('sentinela_combustivel', JSON.stringify(registrosCombustivel));
+                renderizarCombustivel();
+            }
+        }
+
+        function desenharGraficoCombustivel(gastoViatura, litrosViatura, filtrados, anoAlvo, mesAlvo) {
+            const ctx1 = document.getElementById('chartCombustivelGasto');
+            const ctx2 = document.getElementById('chartCombustivelLitros');
+            const ctx3 = document.getElementById('chartCombustivelRanking');
+
+            if(!ctx1 || !ctx2 || !ctx3) return;
+
+            if(chartCombustivel) chartCombustivel.destroy();
+            if(chartCombustivelLitros) chartCombustivelLitros.destroy();
+            if(chartCombustivelRanking) chartCombustivelRanking.destroy();
+
+            const viaturas = Object.keys(gastoViatura);
+            const gastos = Object.values(gastoViatura);
+
+            // Preparação dos dados para a linha do tempo (Gráfico 2 - Consumo Mensal por Litros)
+            const diasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
+            const litrosPorDia = {};
+            for(let d=1; d<=diasNoMes; d++) litrosPorDia[d] = 0;
+            
+            filtrados.forEach(r => {
+                const diaStr = r.data.split('-')[2];
+                if(diaStr) {
+                    litrosPorDia[parseInt(diaStr, 10)] += parseFloat(r.litros);
+                }
+            });
+
+            // Preparação dos dados para o Ranking Operacional (Gráfico 3)
+            let arrayRanking = Object.keys(litrosViatura).map(v => ({ viatura: v, litros: litrosViatura[v] }));
+            arrayRanking.sort((a, b) => b.litros - a.litros);
+            const rankingViaturas = arrayRanking.map(item => item.viatura);
+            const rankingLitros = arrayRanking.map(item => item.litros);
+
+            // Gráfico 1: Comparativo de gasto por viatura (Bar)
+            chartCombustivel = new Chart(ctx1.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: viaturas.length ? viaturas : ['N/A'],
+                    datasets: [{ label: 'Gasto no Mês (R$)', data: gastos.length ? gastos : [0], backgroundColor: '#3b82f6', borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Gráfico 2: Consumo mensal por litros na linha do tempo
+            chartCombustivelLitros = new Chart(ctx2.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: Object.keys(litrosPorDia),
+                    datasets: [{ label: 'Litros Consumidos', data: Object.values(litrosPorDia), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // Gráfico 3: Ranking operacional de consumo (Barra Horizontal)
+            chartCombustivelRanking = new Chart(ctx3.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: rankingViaturas.length ? rankingViaturas : ['N/A'],
+                    datasets: [{ label: 'Total Litros', data: rankingLitros.length ? rankingLitros : [0], backgroundColor: '#f97316', borderRadius: 4 }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function exportarCombustivelPDF() {
+            const elemento = document.getElementById('area-impressao-combustivel');
+            const opcoes = {
+                margin: 10,
+                filename: 'Relatorio_Combustivel_MENSAL.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opcoes).from(elemento).save();
         }
     </script>
 </body>
