@@ -694,6 +694,35 @@
             document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
         }
 
+
+        function parseDataFlex(dataStr) {
+            if (!dataStr || typeof dataStr !== 'string') return null;
+
+            if (dataStr.includes('-')) {
+                const partes = dataStr.split('-');
+                if (partes.length === 3) {
+                    return {
+                        ano: parseInt(partes[0], 10),
+                        mes: parseInt(partes[1], 10) - 1,
+                        dia: parseInt(partes[2], 10)
+                    };
+                }
+            }
+
+            if (dataStr.includes('/')) {
+                const partes = dataStr.split('/');
+                if (partes.length === 3) {
+                    return {
+                        ano: parseInt(partes[2], 10),
+                        mes: parseInt(partes[1], 10) - 1,
+                        dia: parseInt(partes[0], 10)
+                    };
+                }
+            }
+
+            return null;
+        }
+
         function desenharCalor(nomePosto) {
             atualizarTextoMesAno();
             const container = document.getElementById('heatmap-container');
@@ -727,16 +756,11 @@
 
             rondas.forEach(r => {
                 if (r.posto === nomePosto && r.data) {
-                    const partes = r.data.split('-'); 
-                    if (partes.length === 3) {
-                        const anoReg = parseInt(partes[0], 10);
-                        const mesReg = parseInt(partes[1], 10) - 1; 
-                        const diaReg = parseInt(partes[2], 10);
-                        
-                        if (anoReg === anoAlvo && mesReg === mesAlvo) {
-                            const incremento = r.visitantes ? parseInt(r.visitantes, 10) : 1;
-                            volumetriaDiaria[diaReg] = (volumetriaDiaria[diaReg] || 0) + incremento;
-                        }
+                    const dataReg = parseDataFlex(r.data);
+
+                    if (dataReg && dataReg.ano === anoAlvo && dataReg.mes === mesAlvo) {
+                        const incremento = r.visitantes ? parseInt(r.visitantes, 10) : 1;
+                        volumetriaDiaria[dataReg.dia] = (volumetriaDiaria[dataReg.dia] || 0) + incremento;
                     }
                 }
             });
@@ -1309,5 +1333,6 @@
             html2pdf().set(opcoes).from(elemento).save();
         }
     </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
