@@ -152,7 +152,7 @@
         <button class="nav-btn" onclick="alternarVisao('calor')">🔥 Mapa de Calor</button>
         <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
         <button class="nav-btn" id="btn-menu-admin" onclick="alternarVisao('administracao')">👑 Administração</button>
-        <button id="btn-admin" class="nav-btn" onclick="alternarVisao('administracao')" style="display: none;">Administração</button>
+        <button class="nav-btn" id="btn-menu-combustivel" onclick="alternarVisao('combustivel')">⛽ Combustível</button>
         <button class="nav-btn btn-logout" onclick="fazerLogout()">Sair</button>
     </nav>
 
@@ -518,18 +518,9 @@
         let dataFiltroCombustivel = new Date();
 
         auth.onAuthStateChanged(async user => {
-    if (user) {
-        const doc = await db.collection('usuarios').doc(user.email).get();
-        if (doc.exists) {
-            usuarioLogadoPermissao = doc.data().role;
-            
-            // NOVA LÓGICA:
-            if (usuarioLogadoPermissao === "admin") {
-                document.getElementById('btn-admin').style.display = 'block';
-            }
-        }
-    }
-});
+            if (user) {
+                const doc = await fs.collection("usuarios").doc(user.uid).get();
+                const userEmail = user.email ? user.email.toLowerCase() : "";
                 
                 if ((doc.exists && (doc.data().role === "admin" || doc.data().role === "gerencia")) || 
                     ["admin@sentinela.com", "gerencia@sentinela.com"].includes(userEmail)) {
@@ -559,18 +550,8 @@
         }
 
         function alternarVisao(id) {
-    // Se tentar aceder à administração sem ser admin, aborta a função
-    if (id === 'administracao' && usuarioLogadoPermissao !== 'admin') {
-        console.error("Acesso negado");
-        return; 
-    }
-
-    document.querySelectorAll('.view-secao').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(id).classList.add('active');
-    event.currentTarget.classList.add('active');
-}
+            document.querySelectorAll('.view-secao').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             
             document.getElementById('view-' + id).classList.add('active');
             if(window.event && window.event.currentTarget) {
