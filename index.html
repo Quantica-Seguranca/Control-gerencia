@@ -141,7 +141,7 @@
             <p>Painel de Gerência</p>
             <input type="email" id="email" placeholder="E-mail">
             <input type="password" id="senha" placeholder="Senha">
-            <button class="primary" onclick="fazerLogin()">Acessar</button>
+            <button type="button" class="login-btn" onclick="login()">Entrar</button>
             <p id="erro-login" style="color:red; font-size:12px; margin-top:10px;"></p>
         </div>
     </div>
@@ -151,7 +151,6 @@
         <button class="nav-btn active" onclick="alternarVisao('postos')">🏢 Postos</button>
         <button class="nav-btn" onclick="alternarVisao('calor')">🔥 Mapa de Calor</button>
         <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
-        <button class="nav-btn" id="btn-menu-admin" onclick="alternarVisao('administracao')">👑 Administração</button>
         <button id="btn-admin" class="nav-btn" onclick="alternarVisao('administracao')" style="display: none;">Administração</button>
         <button class="nav-btn btn-logout" onclick="fazerLogout()">Sair</button>
     </nav>
@@ -519,14 +518,33 @@
 
         auth.onAuthStateChanged(async user => {
     if (user) {
-        const doc = await db.collection('usuarios').doc(user.email).get();
-        if (doc.exists) {
-            usuarioLogadoPermissao = doc.data().role;
-            
-            // NOVA LÓGICA:
-            if (usuarioLogadoPermissao === "admin") {
-                document.getElementById('btn-admin').style.display = 'block';
+        try {
+            const doc = await db.collection('usuarios').doc(user.email).get();
+            if (doc.exists) {
+                usuarioLogadoPermissao = doc.data().role; // Pega 'admin' ou 'gerencia'
+
+                // Lógica para mostrar o botão de administração
+                const btnAdmin = document.getElementById('btn-admin');
+                if (btnAdmin) {
+                    if (usuarioLogadoPermissao === "admin" || usuarioLogadoPermissao === "gerencia") {
+    document.getElementById('btn-admin').style.display = 'block';
+}
+                    } else {
+                        btnAdmin.style.display = 'none';  // Esconde para usuários comuns
+                    }
+                }
             }
+            // Se estiver na página de login, manda para a principal
+            if (window.location.pathname.includes('login.html')) {
+                window.location.href = 'index.html'; 
+            }
+        } catch (e) {
+            console.error("Erro ao buscar permissões", e);
+        }
+    } else {
+        // Se não estiver logado e não estiver na login.html, redireciona
+        if (!window.location.pathname.includes('login.html')) {
+            window.location.href = 'login.html';
         }
     }
 });
@@ -549,10 +567,17 @@
             }
         });
 
-        function fazerLogin() {
-            auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value)
-                .catch(() => document.getElementById('erro-login').innerText = "Falha no login");
-        }
+        async function login() { // O nome aqui deve ser igual ao do onclick do botão
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('senha').value;
+
+    try {
+        await auth.signInWithEmailAndPassword(email, senha);
+        // O login funcionará e o auth.onAuthStateChanged cuidará do resto
+    } catch (error) {
+        alert("Erro ao logar: " + error.message);
+    }
+}
 
         function fazerLogout() {
             auth.signOut();
