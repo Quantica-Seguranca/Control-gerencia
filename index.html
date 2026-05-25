@@ -2,770 +2,1337 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SENTINELA OPS - CLOUD V2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerência - Sentinela Ops</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            --primary: #0a192f;
-            --accent: #ffd600; --danger: #f85149;
-            --success: #238636; --bg: #0f1c2e; --card: #16233a;
-            --text: #e0e7ff; --text-light: #a3bffa;
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --accent: #2563eb;
+            --bg: #f4f7f6;
+            /* Cores Ajustadas Manualmente */
+            --calor-0: #f1f5f9;
+            --calor-1-3: #eab308;
+            --calor-4-7: #f97316;
+            --calor-8-12: #ef4444;
+            --calor-13: #991b1b;
         }
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 75px; line-height: 1.4; }
-        .header { background: var(--primary); color: white; padding: 14px 16px; border-bottom: 4px solid var(--accent); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; font-weight: bold; }
-        .header h1 { margin: 0; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 1.5px; }
-        .container { padding: 12px; max-width: 640px; margin: 0 auto; }
-        .card { background: var(--card); border: 1px solid #334155; border-radius: 8px; padding: 18px; margin-bottom: 16px; }
-        .card h3 { margin: 0 0 16px 0; padding-bottom: 10px; border-bottom: 3px solid var(--accent); color: var(--accent); font-size: 0.98rem; text-transform: uppercase; font-weight: 700; }
-        label { display: block; font-size: 0.76rem; font-weight: 600; color: #94a3b8; margin: 14px 0 5px 0; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 13px 14px; background: #1e2a44; border: 1px solid #475569; border-radius: 6px; color: white; font-size: 1rem; }
-        .btn { width: 100%; padding: 16px; margin-top: 12px; border: none; border-radius: 6px; font-weight: 700; font-size: 0.96rem; text-transform: uppercase; cursor: pointer; }
-        .btn-primary { background: var(--accent); color: #0a192f; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-info { background: #2563eb; color: white; }
-        .posto-item { background: #1e2a44; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
-        .btn-small { padding: 6px 10px; border-radius: 4px; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; margin-left: 5px; color: white; text-transform: uppercase; }
-        .ronda-entry { background: #1e2a44; padding: 13px; border-radius: 6px; margin-bottom: 9px; border-left: 5px solid var(--accent); font-size: 0.87rem; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); display: flex; border-top: 4px solid var(--accent); z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; padding: 10px 6px; color: #94a3b8; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; cursor: pointer; }
-        .nav-item.active { color: var(--accent); }
-        .hidden { display: none !important; }
-        .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; }
-        .check-item { background: #1e2a44; border: 2px solid #475569; padding: 13px 10px; border-radius: 6px; text-align: center; font-size: 0.79rem; cursor: pointer; }
-        .check-item.ok { border-color: var(--success); color: var(--success); background: rgba(35, 134, 54, 0.2); }
-        /* Une o campo de busca ao select abaixo dele */
-#filtro-posto-ronda {
-    border-bottom: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    background: #1e2a44;
-    border-color: var(--accent);
-}
 
-/* Ajusta o select para encaixar perfeitamente no filtro */
-#r-posto {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    margin-top: -1px;
-}
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        nav { width: 260px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 100; }
+        nav h2 { font-size: 18px; text-align: center; border-bottom: 1px solid #4f5d73; padding-bottom: 15px; margin-bottom: 20px; }
+        .nav-btn { background: none; border: none; color: #bdc3c7; padding: 12px; text-align: left; cursor: pointer; width: 100%; border-radius: 6px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-btn:hover, .nav-btn.active { background: var(--secondary); color: white; }
+        .btn-logout { background: var(--danger); color: white; margin-top: auto; text-align: center; }
 
-/* Destaque visual quando você clica para digitar */
-#filtro-posto-ronda:focus {
-    outline: none;
-    background: #253454;
-    box-shadow: 0 0 5px var(--accent);
-}
+        /* Main Content */
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        #secao-login { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button.primary { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        button.secondary { background: #e2e8f0; color: var(--primary); border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        button.secondary:hover { background: #cbd5e1; }
+        button.btn-pdf { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+        button.btn-pdf:hover { background: #1d4ed8; }
+
+        /* Botões de ação da tabela */
+        .btn-acao { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; margin-right: 4px; }
+        .btn-editar { background: #3498db; color: white; }
+        .btn-editar:hover { background: #2980b9; }
+        .btn-excluir { background: var(--danger); color: white; }
+        .btn-excluir:hover { background: #c0392b; }
+
+        .view-secao { display: none; }
+        .view-secao.active { display: block; }
+
+        /* Cards & Tables */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--accent); }
+        .card h3 { margin: 0; font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+        .card .valor { font-size: 24px; font-weight: bold; margin-top: 5px; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: var(--secondary); color: white; }
+        tr.total-row { background: #f8fafc; font-weight: bold; font-size: 16px; border-top: 2px solid #cbd5e1; }
+
+        /* Controles de Tabela */
+        .tabela-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; }
+        .busca-container { position: relative; flex: 1; max-width: 400px; }
+        .busca-container input { margin-bottom: 0; padding-left: 15px; }
+        .paginacao-container { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--secondary); }
+        .paginacao-btn { padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .paginacao-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+
+        /* Layout do Mapa de Calor */
+        .heatmap-wrapper-vertical { display: flex; flex-direction: column; gap: 20px; max-width: 800px; }
+        .seletor-posto-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .seletor-posto-container select { margin-bottom: 0; }
+        
+        .heatmap-calendario-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .heatmap-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; }
+        .heatmap-mes-titulo { font-size: 16px; font-weight: bold; color: var(--primary); text-transform: capitalize; }
+        
+        /* Grid do Mapa de Calor */
+        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 100%; margin-top: 15px; }
+        .heatmap-dia { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #e2e8f0; }
+        .heatmap-dia span { font-size: 10px; font-weight: normal; margin-top: 2px; }
+        
+        /* Classes de Intensidade Ajustadas com a Nova Escala */
+        .intensidade-0 { background: var(--calor-0); color: #94a3b8; }
+        .intensidade-1 { background: var(--calor-1-3); color: #854d0e; }
+        .intensidade-2 { background: var(--calor-4-7); color: #ffffff; }
+        .intensidade-3 { background: var(--calor-8-12); color: #ffffff; }
+        .intensidade-4 { background: var(--calor-13); color: #ffffff; }
+
+        /* Legenda */
+        .heatmap-legenda { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 13px; }
+        .legenda-item { display: flex; align-items: center; gap: 6px; }
+        .legenda-cor { width: 18px; height: 18px; border-radius: 4px; border: 1px solid #cbd5e1; }
+
+        /* ESTILOS ESPECÍFICOS - VIEW FINANCEIRO RESTRUTURADO */
+        .financeiro-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .coluna-esquerda-financeiro { display: flex; flex-direction: column; gap: 20px; }
+        .form-financeiro-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-financeiro-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-financeiro-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .financeiro-painel-relatorio { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .grafico-financeiro-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* Estilos Adicionados para a Nova View Administrativa */
+        .admin-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .form-admin-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-admin-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-admin-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .admin-painel-tabela { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        .feedback-loading { display: none; font-size: 13px; color: var(--accent); font-weight: bold; margin-top: 10px; text-align: center; }
+
+        /* NOVOS ESTILOS - VIEW CONTROLE DE COMBUSTÍVEL */
+        .combustivel-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .coluna-esquerda-combustivel { display: flex; flex-direction: column; gap: 20px; }
+        .form-combustivel-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-combustivel-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-combustivel-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
+        .combustivel-painel-relatorio { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        .grafico-combustivel-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 25px; }
+        .card-combustivel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #f59e0b; }
+        .card-combustivel h3 { margin: 0; font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+        .card-combustivel .valor { font-size: 24px; font-weight: bold; margin-top: 5px; color: var(--primary); }
     </style>
 </head>
 <body>
 
-<div id="view-login" class="container">
-    <div style="text-align: center; padding: 50px 0;">
-        <h1 style="color: var(--accent); letter-spacing: 3px; margin:0;">SENTINELA OPS</h1>
-        <p style="color: #94a3b8; font-size: 0.8rem;">SISTEMA OPERACIONAL EM NUVEM</p>
-    </div>
-    <div class="card">
-        <h3>ACESSO RESTRITO</h3>
-        <label>Email Operacional</label>
-        <input type="email" id="login-email" placeholder="seu@email.com">
-        <label>Senha</label>
-        <input type="password" id="login-senha" placeholder="******">
-        <button class="btn btn-primary" onclick="login()">ENTRAR</button>
-        <button class="btn btn-info" onclick="cadastrar()" style="background: transparent; border: 1px solid #475569;">CRIAR CONTA</button>
-    </div>
-</div>
-
-<div id="app-content" class="hidden">
-    <div class="header">
-        <h1>SENTINELA OPS</h1>
-        <div onclick="logout()" style="cursor:pointer; font-size: 1.2rem;">🚪</div>
-    </div>
-
-    <div id="view-home" class="container">
-        <div class="card" onclick="showView('rondas')" style="cursor:pointer; border-left: 5px solid var(--accent);">📍 <b>REGISTRO DE RONDAS</b></div>
-        <div class="card" onclick="showView('postos')" style="cursor:pointer; border-left: 5px solid #2563eb;">📋 <b>BASE DE POSTOS / ROTAS</b></div>
-        <div class="card" onclick="gerarRelatorioPlantao()" style="cursor:pointer; border-left: 5px solid var(--success);">📄 <b>RELATÓRIO DE PLANTÃO (PDF)</b></div>
-        <div class="card" onclick="showView('perfil')" style="cursor:pointer; border-left: 5px solid #94a3b8;">👤 <b>MEU PERFIL</b></div>
-    </div>
-
-    <div id="view-rondas" class="container hidden">
-        <div class="card">
-            <h3>NOVA ATIVIDADE</h3>
-            <button id="btn-intervalo" class="btn btn-info" onclick="gerenciarIntervalo()">☕ INICIAR INTERVALO</button>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:10px;">
-                <div><label>VTR (Editar Placa)</label><input type="text" id="r-placa" placeholder="ABC-1234"></div>
-                <div><label>KM</label><input type="number" id="r-km"></div>
-            </div>
-            <label>Filtrar Posto</label>
-            <input type="text" id="filtro-posto-ronda" placeholder="Digite para buscar..." onkeyup="atualizarSelectPostos()">
-            <label>Posto / Local Selecionado</label>
-            <select id="r-posto"></select>
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px;">
-    <div>
-        <label>Colaborador no Local</label>
-        <input type="text" id="r-func" placeholder="Nome do colaborador">
-    </div>
-    <div>
-        <label>Matrícula</label>
-        <input type="text" id="r-func-mat" placeholder="0000">
-    </div>
-</div>
-            <label>Missão</label>
-            <select id="r-motivo" onchange="toggleFiscalizacao()">
-                <option value="Fiscalização">Fiscalização</option>
-                <option value="De base">De base</option>
-                <option value="Complemento">Complemento</option>
-                <option value="Cobertura">Cobertura</option>
-                <option value="Entrega de material">Entrega de material</option>
-                <option value="Deslocamento">Deslocamento</option>
-                <option value="Outros">Outros</option>
-            </select>
-            <div id="sec-fiscalizacao">
-                <label>CHECKLIST TÁTICO</label>
-                <div class="checklist-grid" id="checklist">
-                    <div class="check-item ok" onclick="toggleCheck(this)">APRESENTAÇÃO</div>
-                    <div class="check-item ok" onclick="toggleCheck(this)">UNIFORME</div>
-                    <div class="check-item ok" onclick="toggleCheck(this)">POSTURA</div>
-                    <div class="check-item ok" onclick="toggleCheck(this)">LIVRO OCO.</div>
-                    <div class="check-item ok" onclick="toggleCheck(this)">MATERIAL</div>
-                    <div class="check-item ok" onclick="toggleCheck(this)">OUTROS</div>
-                </div>
-            </div>
-            <label>Observações</label>
-            <textarea id="r-obs" rows="3" placeholder="Algo fora do normal?"></textarea>
-            <label>Foto de Comprovação</label>
-            <input type="file" id="r-foto" accept="image/*" capture="environment" onchange="previewImage(this)">
-            <button class="btn btn-primary" onclick="salvarRonda()">✅ FINALIZAR E GERAR CARD</button>
-        </div>
-        <div class="card">
-            <h3>LOG DE ATIVIDADES (HOJE)</h3>
-            <div id="historico-rondas"></div>
+    <div id="secao-login">
+        <div class="login-box">
+            <h2>Sentinela Ops</h2>
+            <p>Painel de Gerência</p>
+            <input type="email" id="email" placeholder="E-mail">
+            <input type="password" id="senha" placeholder="Senha">
+            <button class="primary" onclick="fazerLogin()">Acessar</button>
+            <p id="erro-login" style="color:red; font-size:12px; margin-top:10px;"></p>
         </div>
     </div>
 
-    <div id="view-postos" class="container hidden">
-        <div class="card">
-            <h3>GERENCIAR POSTOS</h3>
-            <button class="btn btn-primary" onclick="adicionarPosto()">➕ NOVO POSTO</button>
-            <button class="btn btn-danger" onclick="zerarRondasPlantao()">🧹 ZERAR RONDAS / INICIAR NOVO PLANTÃO</button>
-            <input type="text" id="busca-posto" placeholder="Filtrar postos..." onkeyup="renderPostos()" style="margin-top:15px;">
-            <div id="lista-postos" style="margin-top:15px;"></div>
-        </div>
-    </div>
-
-    <div id="view-perfil" class="container hidden">
-        <div class="card">
-            <h3>DADOS DO OPERADOR</h3>
-            <label>Nome Completo</label><input type="text" id="p-nome">
-            <label>Matrícula</label><input type="text" id="p-matrícula">
-            <label>Cargo</label><input type="text" id="p-cargo">
-            <label>Viatura (Placa)</label><input type="text" id="p-placa">
-            <label>Empresa</label><input type="text" id="p-empresa">
-            <label>CNPJ</label><input type="text" id="p-cnpj">
-            <button class="btn btn-primary" onclick="salvarPerfil()">SALVAR NO CLOUD</button>
-        </div>
-    </div>
-    <div id="view-admin" class="container hidden">
-        <div class="card">
-            <h3>LANÇAMENTO RETROATIVO / GESTÃO</h3>
-            <p style="font-size: 0.8rem; color: #94a3b8; margin-top: -10px;">Lance rondas em nome de qualquer operador. O sistema processará como uma atividade real.</p>
-            
-            <label>1. SELECIONE O OPERADOR *</label>
-            <select id="adm-usuario" onchange="atualizarVtrAdmin()"></select>
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                <div>
-                    <label>VTR (Placa)</label>
-                    <input type="text" id="adm-placa" readonly style="opacity: 0.7;">
-                </div>
-                <div>
-                    <label>KM Atual</label>
-                    <input type="number" id="adm-km">
-                </div>
-            </div>
-
-            <label>2. POSTO / LOCAL *</label>
-            <select id="adm-posto"></select>
-
-            <label>Colaborador no Local</label>
-            <input type="text" id="adm-func" placeholder="Nome do colaborador">
-
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-                <div>
-                    <label>Data da Ronda</label>
-                    <input type="date" id="adm-data">
-                </div>
-                <div>
-                    <label>Hora da Ronda</label>
-                    <input type="time" id="adm-hora">
-                </div>
-            </div>
-
-            <label>Missão</label>
-            <select id="adm-motivo">
-                <option value="Fiscalização">Fiscalização</option>
-                <option value="De base">De base</option>
-                <option value="Complemento">Complemento</option>
-                <option value="Cobertura">Cobertura</option>
-                <option value="Entrega de material">Entrega de material</option>
-                <option value="Deslocamento">Deslocamento</option>
-                <option value="Outros">Outros</option>
-            </select>
-
-            <label>Observações</label>
-            <textarea id="adm-obs" rows="3" placeholder="Observações do lançamento administrativo..."></textarea>
-
-            <button class="btn btn-primary" onclick="salvarRondaComoAdmin()" style="background: #2563eb; color: white;">⚡ LANÇAR RONDA OFICIAL</button>
-        </div>
-    </div>
-
-    <nav class="nav-bar">
-        <div class="nav-item active" id="nav-home" onclick="showView('home')">🏠 HOME</div>
-        <div class="nav-item" id="nav-rondas" onclick="showView('rondas')">📍 RONDAS</div>
-        <div class="nav-item" id="nav-postos" onclick="showView('postos')">📋 POSTOS</div>
-        <div class="nav-item hidden" id="nav-admin" onclick="showView('admin')">⚙️ ADMIN</div>
-        <div class="nav-item" id="nav-perfil" onclick="showView('perfil')">👤 PERFIL</div>
+    <nav id="nav-lateral" style="display:none;">
+        <h2>GERÊNCIA</h2>
+        <button class="nav-btn active" onclick="alternarVisao('postos')">🏢 Postos</button>
+        <button class="nav-btn" onclick="alternarVisao('calor')">🔥 Mapa de Calor</button>
+        <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
+        <button class="nav-btn" id="btn-menu-admin" onclick="alternarVisao('administracao')">👑 Administração</button>
+        <button class="nav-btn" id="btn-menu-combustivel" onclick="alternarVisao('combustivel')">⛽ Combustível</button>
+        <button class="nav-btn btn-logout" onclick="fazerLogout()">Sair</button>
     </nav>
-</div>
 
-<script>
-// --- CONFIG FIREBASE ---
-const firebaseConfig = {
-    apiKey: "AIzaSyBL4Nka91iGIAWSTfvAmsqDHCj2KMhWZ70",
-    authDomain: "sentinela-ops-profissional.firebaseapp.com",
-    projectId: "sentinela-ops-profissional",
-    storageBucket: "sentinela-ops-profissional.firebasestorage.app",
-    messagingSenderId: "458111218365",
-    appId: "1:458111218365:web:0f3b41ab7c2ceb7feebdd4"
-};
+    <div class="main" id="conteudo-painel" style="display:none;">
+        <header style="margin-bottom:30px;">
+            <h1 id="titulo-aba">POSTOS</h1>
+            <small id="status-fb">Conectado ao Firestore</small>
+        </header>
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const fs = firebase.firestore();
-
-let db = JSON.parse(localStorage.getItem('sentinela_ops_db')) || { perfil: {}, postos: [], rondas: [], intervaloAtivo: null };
-let fotoBase64 = "";
-let listaUsuariosAdmin = [];
-
-function gerenciarMenuAdmin() {
-    const navAdmin = document.getElementById('nav-admin');
-    if (navAdmin) {
-        if (isAdmin()) {
-            navAdmin.classList.remove('hidden');
-        } else {
-            navAdmin.classList.add('hidden');
-        }
-    }
-}
-
-// CORREÇÃO: Função de escuta e sincronização temporal revisada
-async function carregarDadosSincronizados(uid) {
-    try {
-        const userDoc = await fs.collection("usuarios").doc(uid).get();
-        if (userDoc.exists) {
-            db.perfil = userDoc.data();
-        } else {
-            db.perfil = { nome: auth.currentUser.email, role: "operador" };
-        }
-        
-        const postosSnap = await fs.collection("postos").get();
-        db.postos = postosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-       const rondasSnap = await fs.collection("rondas").where("uid", "==", uid).get();
-const hoje = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD para consistência
-
-db.rondas = rondasSnap.docs
-    .map(doc => doc.data())
-    .filter(r => r.data === hoje) // Mantém todas as rondas registradas na data de hoje
-    .sort((a, b) => b.id - a.id); // Garante que a mais recente apareça primeiro 
-        saveLocal();
-        gerenciarMenuAdmin();
-        showView('home');
-    } catch (e) {
-        console.error("Erro na sincronização inicial:", e);
-        gerenciarMenuAdmin();
-    }
-}
-
-function isAdmin() {
-    return db.perfil && db.perfil.role === "admin";
-}
-
-auth.onAuthStateChanged(user => {
-    if (user) {
-        document.getElementById('view-login').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
-        carregarDadosSincronizados(user.uid);
-    } else {
-        document.getElementById('view-login').classList.remove('hidden');
-        document.getElementById('app-content').classList.add('hidden');
-    }
-});
-
-function login() {
-    const e = document.getElementById('login-email').value;
-    const s = document.getElementById('login-senha').value;
-    if(!e || !s) return alert("Preencha os campos!");
-    auth.signInWithEmailAndPassword(e, s).catch(err => alert("Erro: " + err.message));
-}
-
-function cadastrar() {
-    const e = document.getElementById('login-email').value;
-    const s = document.getElementById('login-senha').value;
-    auth.createUserWithEmailAndPassword(e, s).then(() => alert("Conta criada!")).catch(err => alert(err.message));
-}
-
-function logout() { auth.signOut(); }
-function saveLocal() { localStorage.setItem('sentinela_ops_db', JSON.stringify(db)); }
-
-function showView(v) {
-    document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'));
-    document.getElementById('view-' + v).classList.remove('hidden');
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.getElementById('nav-' + v).classList.add('active');
-    gerenciarMenuAdmin();
-    if (v === 'rondas') {
-        document.getElementById('r-placa').value = db.perfil.placa || "N/A";
-        atualizarSelectPostos();
-        renderRondas();
-    }
-    if (v === 'perfil') preencherCamposPerfil();
-    if (v === 'postos') renderPostos();
-    if (v === 'admin') {
-        if (!isAdmin()) {
-            alert("Acesso restrito a Administradores.");
-            showView('home');
-            return;
-        }
-        carregarUsuariosParaAdmin();
-        atualizarSelectPostosAdmin();
-        document.getElementById('adm-data').value = new Date().toISOString().split('T')[0];
-        document.getElementById('adm-hora').value = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-    }
-}
-
-// CORREÇÃO: Injeção do serverTimestamp remoto protegendo a persistência local
-async function salvarRonda() {
-    const posto = document.getElementById('r-posto').value;
-    if(!posto) return alert("Selecione um posto!");
-
-    const novaRonda = {
-        id: Date.now(),
-        uid: auth.currentUser.uid,
-        posto: posto,
-        km: document.getElementById('r-km').value || "0",
-        colaborador: document.getElementById('r-func').value || "N/A",
-        colaboradorMat: document.getElementById('r-func-mat').value || "N/A",
-        motivo: document.getElementById('r-motivo').value,
-        obs: document.getElementById('r-obs').value,
-        data: new Date().toISOString().split('T')[0],
-        hora: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-        foto: fotoBase64,
-        checklist: {
-            "APRESENTAÇÃO": document.querySelectorAll('.check-item')[0].classList.contains('ok') ? "OK" : "REPROVADO",
-            "UNIFORME": document.querySelectorAll('.check-item')[1].classList.contains('ok') ? "OK" : "REPROVADO",
-            "POSTURA": document.querySelectorAll('.check-item')[2].classList.contains('ok') ? "OK" : "REPROVADO",
-            "LIVRO OCO.": document.querySelectorAll('.check-item')[3].classList.contains('ok') ? "OK" : "REPROVADO",
-            "MATERIAL": document.querySelectorAll('.check-item')[4].classList.contains('ok') ? "OK" : "REPROVADO",
-            "OUTROS": document.querySelectorAll('.check-item')[5].classList.contains('ok') ? "OK" : "REPROVADO"
-        }
-    };
-
-    try {
-        await fs.collection("rondas").add({
-            ...novaRonda,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        db.rondas.unshift(novaRonda);
-        saveLocal();
-        renderRondas();
-        limparFormRonda();
-        alert("✅ Ronda salva com sucesso!");
-    } catch(e) {
-        alert("Erro ao salvar ronda: " + e.message);
-    }
-}
-
-function renderRondas() {
-    const container = document.getElementById('historico-rondas');
-    container.innerHTML = db.rondas.map((r) => `
-        <div class="ronda-entry">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <strong>${r.hora}</strong> - ${r.posto}<br>
-                    <small>${r.motivo} | KM: ${r.km}</small>
+        <section id="view-postos" class="view-secao active">
+            <div class="card-grid" style="margin-bottom: 20px;">
+                <div class="card">
+                    <h3>Total de Postos Registrados</h3>
+                    <div class="valor" id="postos-p-total">0</div>
                 </div>
-                <button onclick='reimprimirCard(${JSON.stringify(r).replace(/'/g, "'")})' class="btn-small" style="background:var(--accent); color:#000;">🖨️ CARD</button>        </div>
-    `).join('');
-}
-
-function reimprimirCard(ronda) { gerarCardIndividual(ronda); }
-
-function gerarCardIndividual(r) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
-    let y = 10;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("COMPROVANTE DE VISITA", 40, y, { align: "center" });
-    y += 7;
-    if (r.foto) { try { doc.addImage(r.foto, 'JPEG', 5, y, 70, 45); y += 50; } catch (e) { y += 5; } }
-    doc.setFontSize(11);
-    doc.text(r.posto.toUpperCase(), 40, y, { align: "center" });
-    y += 7;
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Data: ${r.data} | Hora: ${r.hora}`, 5, y);
-    y += 5;
-    // Captura a placa que estava no campo da ronda no momento
-const placaUsada = document.getElementById('r-placa').value || "---";
-doc.text(`VTR: ${placaUsada} | KM: ${r.km}`, 5, y);
-    y += 5;
-    doc.text(`COLABORADOR: ${r.colaborador.toUpperCase()} | MAT: ${r.colaboradorMat || "---"}`, 5, y);
-    y += 8;
-    doc.setFont("helvetica", "bold");
-    doc.text("STATUS OPERACIONAL:", 5, y);
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    Object.entries(r.checklist || {}).forEach(([item, status]) => {
-        y += 4;
-        doc.text(`• ${item}: ${status}`, 8, y);
-    });
-    y += 8;
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    doc.text("OBSERVAÇÕES:", 5, y);
-    doc.setFont("helvetica", "normal");
-    const obs = doc.splitTextToSize(r.obs, 70);
-    doc.text(obs, 5, y + 5);
-    y += (obs.length * 5) + 15;
-    doc.setFont("helvetica", "bold");
-    doc.text(`${(db.perfil.cargo || "Supervisor").toUpperCase()}:`, 5, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.text((db.perfil.nome || "N/A").toUpperCase(), 5, y);
-    doc.save(`Card_${r.posto}_${r.hora.replace(':','-')}.pdf`);
-}
-
-async function adicionarPosto() {
-    if (!isAdmin()) return alert("Acesso negado: apenas administradores podem gerenciar postos.");
-    const nome = prompt("Nome do Posto:");
-    if(!nome) return;
-    const endereco = prompt("Endereço:");
-    const novoPosto = { nome: nome.toUpperCase(), endereco: endereco || "Sem endereço", uid: auth.currentUser.uid };
-    const docRef = await fs.collection("postos").add(novoPosto);
-    db.postos.push({ id: docRef.id, ...novoPosto });
-    saveLocal();
-    renderPostos();
-}
-
-function renderPostos() {
-    const busca = document.getElementById('busca-posto').value.toUpperCase();
-    const container = document.getElementById('lista-postos');
-    const btnNovoPosto = document.querySelector('button[onclick="adicionarPosto()"]');
-    if (btnNovoPosto) btnNovoPosto.style.display = isAdmin() ? "block" : "none";
-    const filtrados = db.postos.filter(p => p.nome.includes(busca));
-    container.innerHTML = filtrados.map((p, i) => `
-        <div class="posto-item">
-            <div style="flex:1;">
-                <b>${p.nome}</b><br><small>${p.endereco}</small>
             </div>
-            <div style="display:flex;">
-                <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.endereco)}', '_blank')" class="btn-small" style="background:#238636;">ROTA</button>
-                ${isAdmin() ? `
-                    <button onclick="editarPosto('${p.id}', ${db.postos.indexOf(p)})" class="btn-small" style="background:#2563eb;">✏️</button>
-                    <button onclick="excluirPosto('${p.id}', ${db.postos.indexOf(p)})" class="btn-small" style="background:#f85149;">🗑️</button>
-                ` : ""}
+
+            <div class="tabela-controles">
+                <div class="busca-container">
+                    <input type="text" id="busca-posto-input" placeholder="🔍 Pesquisar por posto ou cidade..." oninput="filtrarETubularPostos()">
+                </div>
+                <div class="paginacao-container">
+                    <button class="paginacao-btn" id="btn-pag-anterior" onclick="mudarPaginaPosto(-1)">◀</button>
+                    <span id="indicador-paginacao">Página 1 de 1</span>
+                    <button class="paginacao-btn" id="btn-pag-proxima" onclick="mudarPaginaPosto(1)">▶</button>
+                </div>
             </div>
-        </div>
-    `).join('');
-}
 
-async function editarPosto(id, index) {
-    if (!isAdmin()) return alert("Acesso negado.");
-    const posto = db.postos[index];
-    const novoNome = prompt("Editar nome do Posto:", posto.nome);
-    const novoEndereco = prompt("Editar endereço:", posto.endereco);
-    if (novoNome) {
-        const dadosAtualizados = { nome: novoNome.toUpperCase(), endereco: novoEndereco || "Sem endereço" };
-        if(id) await fs.collection("postos").doc(id).update(dadosAtualizados);
-        db.postos[index] = { ...posto, ...dadosAtualizados };
-        saveLocal();
-        renderPostos();
-    }
-}
+            <table id="tabela-postos-oficial">
+                <thead><tr><th>Nome do Posto</th><th>Cidade/Local</th></tr></thead>
+                <tbody id="corpo-postos"></tbody>
+            </table>
+        </section>
 
-async function excluirPosto(id, index) {
-    if (!isAdmin()) return alert("Acesso negado.");
-    if(!confirm("Excluir posto?")) return;
-    if(id) await fs.collection("postos").doc(id).delete();
-    db.postos.splice(index, 1);
-    saveLocal();
-    renderPostos();
-}
+        <section id="view-calor" class="view-secao">
+            <div class="heatmap-wrapper-vertical">
+                <div class="seletor-posto-container" data-html2pdf-ignore="true">
+                    <label for="sel-posto-calor" style="font-size:14px; font-weight:bold; color:var(--secondary); display:block; margin-bottom:8px;">🏢 Selecione o Posto Alvo:</label>
+                    <select id="sel-posto-calor" onchange="dispararMudancaSeletorPosto()">
+                        <option value="">Aguardando carregamento de postos...</option>
+                    </select>
+                </div>
 
-async function zerarRondasPlantao() {
-    if (!auth.currentUser) return alert("Usuário não autenticado.");
-    const confirmar = confirm("ATENÇÃO!\n\nEsta ação irá ocultar as rondas locais do seu dispositivo para iniciar uma nova jornada de trabalho.\n\nOs registros remotos salvos na nuvem continuarão intactos para auditoria da gerência.\n\nDeseja continuar?");
-    if (!confirmar) return;
-    try {
-        const agora = Date.now();
-        db.perfil.ultimoZeramento = agora;
-        await fs.collection("usuarios").doc(auth.currentUser.uid).set({ ultimoZeramento: agora }, { merge: true });
-        limparDadosLocaisRondas();
-        renderRondas();
-        alert("✅ Rondas zeradas com sucesso! Novo plantão iniciado.");
-    } catch (e) { 
-        alert("Erro ao zerar rondas: " + e.message);
-    }
-}
+                <div class="heatmap-calendario-box" id="area-impressao-pdf">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+                        <div>
+                            <h3 id="nome-posto-selecionado" style="margin:0; color:var(--primary);">Nenhum posto selecionado</h3>
+                            <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Frequência de auditoria interna por período selecionado.</p>
+                        </div>
+                        <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
+                    </div>
 
-async function excluirRondasFirebaseUsuario(uid) {
-    while (true) {
-        const snap = await fs.collection("rondas").where("uid", "==", uid).limit(450).get();
-        if (snap.empty) break;
-        const batch = fs.batch();
-        snap.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        if (snap.size < 450) break;
-    }
-}
+                    <div class="heatmap-controles" data-html2pdf-ignore="true">
+                        <button class="secondary" onclick="alterarMes(-1)">◀ Voltar</button>
+                        <div class="heatmap-mes-titulo" id="filtro-mes-ano-texto">Mês Corrente</div>
+                        <button class="secondary" onclick="alterarMes(1)">Avançar ▶</button>
+                    </div>
 
-function limparDadosLocaisRondas() {
-    db.rondas = [];
-    saveLocal();
-}
+                    <div id="heatmap-container" class="heatmap-grid"></div>
 
-async function salvarPerfil() {
-    const p = {
-        nome: document.getElementById('p-nome').value,
-        matricula: document.getElementById('p-matrícula').value,
-        cargo: document.getElementById('p-cargo').value,
-        placa: document.getElementById('p-placa').value.toUpperCase(),
-        empresa: document.getElementById('p-empresa').value,
-        cnpj: document.getElementById('p-cnpj').value
-    };
-    db.perfil = { ...db.perfil, ...p };
-    saveLocal();
-    await fs.collection("usuarios").doc(auth.currentUser.uid).set(p, { merge: true });
-    alert("✅ Perfil salvo!");
-}
+                    <div class="heatmap-legenda">
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-0)"></div> 0 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-1-3)"></div> 1 a 3 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-4-7)"></div> 4 a 7 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-8-12)"></div> 8 a 12 vis.</div>
+                        <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-13)"></div> 13+ vis.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-function preencherCamposPerfil() {
-    const p = db.perfil;
-    document.getElementById('p-nome').value = p.nome || "";
-    document.getElementById('p-matrícula').value = p.matricula || "";
-    document.getElementById('p-cargo').value = p.cargo || "";
-    document.getElementById('p-placa').value = p.placa || "";
-    document.getElementById('p-empresa').value = p.empresa || "";
-    document.getElementById('p-cnpj').value = p.cnpj || "";
-}
+        <section id="view-financeiro" class="view-secao">
+            <div class="financeiro-grid-layout">
+                <div class="coluna-esquerda-financeiro">
+                    <div class="form-financeiro-box">
+                        <h3 id="fin-titulo-formulario">Lançamento de Horas</h3>
+                        <input type="hidden" id="fin-input-index" value="">
+                        
+                        <label>Posto de Serviço:</label>
+                        <select id="fin-input-posto"></select>
+                        
+                        <label>Data da Ocorrência:</label>
+                        <input type="date" id="fin-input-data">
+                        
+                        <label>Quantidade de Horas:</label>
+                        <input type="number" id="fin-input-horas" placeholder="Ex: 2" min="1">
+        
+                        <label>Gasto não otimizado (R$):</label>
+                        <input type="number" id="fin-input-valor" placeholder="Ex: 150.00" step="0.01">
+                        
+                        <label>Motivo da Ineficiência (Editável):</label>
+                        <input type="text" id="fin-input-motivo" placeholder="Ex: Faltou / Atraso na rendição">
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="primary" style="margin-top:10px; flex:1;" id="fin-btn-salvar" onclick="salvarHoraIneficiente()">Registrar</button>
+                            <button class="secondary" style="margin-top:10px; display:none;" id="fin-btn-cancelar" onclick="cancelarEdicaoFinanceira()">Cancelar</button>
+                        </div>
+                    </div>
 
-function atualizarSelectPostos() {
-    const sel = document.getElementById('r-posto');
-    const filtroInput = document.getElementById('filtro-posto-ronda');
-    const termo = filtroInput ? filtroInput.value.toUpperCase() : "";
+                    <div class="grafico-financeiro-box" data-html2pdf-ignore="true">
+                        <h3 style="margin-top:0; color:var(--primary); font-size:14px; text-transform:uppercase;">📊 Perdas por Postos</h3>
+                        <div style="height:220px; position:relative;">
+                            <canvas id="chartFinanceiro"></canvas>
+                        </div>
+                    </div>
+                </div>
 
-    // Limpa o select mas mantém a estrutura
-    sel.innerHTML = '';
-    
-    // Filtra os postos localmente
-    const postosFiltrados = db.postos.filter(p => 
-        p.nome.toUpperCase().includes(termo)
-    );
+                <div class="financeiro-painel-relatorio" id="area-impressao-financeiro">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+                        <div>
+                            <h2 style="margin:0; color:var(--primary); font-size:20px;">Relatório de Horas Ineficientes</h2>
+                            <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Controle financeiro e operacional.</p>
+                        </div>
+                        <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarFinanceiroPDF()">📄 Exportar PDF</button>
+                    </div>
 
-    // Se não houver termo de busca, adiciona o "Selecione..."
-    if (termo === "") {
-        sel.innerHTML = '<option value="">Selecione o posto...</option>';
-    }
+                    <div class="heatmap-controles" data-html2pdf-ignore="true">
+                        <button class="secondary" onclick="alterarMesFinanceiro(-1)">◀ Mês Anterior</button>
+                        <div class="heatmap-mes-titulo" id="fin-mes-ano-texto">Mês Corrente</div>
+                        <button class="secondary" onclick="alterarMesFinanceiro(1)">Próximo Mês ▶</button>
+                    </div>
 
-    // Renderiza os que coincidem
-    postosFiltrados.forEach(p => {
-        sel.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
-    });
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Posto</th>
+                                <th>Data</th>
+                                <th>Motivo da Ineficiência</th>
+                                <th>Horas</th>
+                                <th>Valor Prejuízo</th>
+                                <th data-html2pdf-ignore="true">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpo-financeiro"></tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3" style="text-align:right;">Impacto Financeiro Total:</td>
+                                <td id="fin-total-horas">0h</td>
+                                <td id="fin-total-valor">R$ 0,00</td>
+                                <td data-html2pdf-ignore="true"></td>
+                            </tr>
+                        </tfoot>
+                     </table>
+                </div>
+            </div>
+        </section>
 
-    // Toque de "Instantâneo": Se houver resultados, expande visualmente (opcional)
-    // ou apenas garante que o primeiro da busca já seja o valor atual do select
-    if (postosFiltrados.length > 0 && termo !== "") {
-        sel.value = postosFiltrados[0].nome;
-    }
-}
+        <section id="view-administracao" class="view-secao">
+            <div class="admin-grid-layout">
+                <div class="form-admin-box">
+                    <h3 id="admin-titulo-formulario">Lançamento de Visitantes</h3>
+                    <input type="hidden" id="admin-input-id" value="">
+                    
+                    <label>Posto Alvo:</label>
+                    <select id="admin-input-posto"></select>
+                     
+                    <label>Data de Registro:</label>
+                    <input type="date" id="admin-input-data">
+                    
+                    <label>Quantidade de Visitantes:</label>
+                    <input type="number" id="admin-input-visitantes" placeholder="Ex: 25" min="0">
+                    
+                    <label>Observações:</label>
+                    <input type="text" id="admin-input-observacao" placeholder="Ex: Evento corporativo ou plantão extra">
 
-function gerenciarIntervalo() {
-    const btn = document.getElementById('btn-intervalo');
-    if (!db.intervaloAtivo) {
-        db.intervaloAtivo = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-        btn.innerText = "☕ EM INTERVALO (CLIQUE P/ VOLTAR)";
-        btn.style.background = "var(--danger)";
-        alert("Intervalo iniciado às " + db.intervaloAtivo);
-    } else {
-        const fim = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-        alert(`Intervalo finalizado!\nInício: ${db.intervaloAtivo}\nFim: ${fim}`);
-        db.intervaloAtivo = null;
-        btn.innerText = "☕ INICIAR INTERVALO";
-        btn.style.background = "#2563eb";
-    }
-    saveLocal();
-}
+                     <div id="admin-loading" class="feedback-loading">Processando dados no Firestore...</div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+                        <button class="primary" id="admin-btn-salvar" onclick="salvarVisitanteAdmin()">Salvar Registro</button>
+                        <button class="secondary" style="display:none; width:100%;" id="admin-btn-cancelar" onclick="limparFormularioAdmin()">Cancelar Edição</button>
+                    </div>
+                </div>
 
-function toggleCheck(el) { el.classList.toggle('ok'); }
-function toggleFiscalizacao() {
-    const m = document.getElementById('r-motivo').value;
-    document.getElementById('sec-fiscalizacao').style.display = (m === 'Fiscalização') ? 'block' : 'none';
-}
+                <div class="admin-painel-tabela">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="margin:0; color:var(--primary); font-size:20px;">Histórico de Visitantes Cadastrados</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Posto</th>
+                                <th>Data</th>
+                                <th>Visitantes</th>
+                                <th>Observação</th>
+                                <th>Responsável</th>
+                                <th>Data Cadastro</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpo-administrativo">
+                             <tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Nenhum registro carregado.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-function previewImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = function () {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const maxWidth = 800;
-                const scale = maxWidth / img.width;
-                canvas.width = maxWidth;
-                canvas.height = img.height * scale;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                fotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
-            };
+        <section id="view-combustivel" class="view-secao">
+            <div class="card-grid" style="margin-bottom: 20px;" id="cards-combustivel">
+                <div class="card card-combustivel">
+                    <h3>Total Gasto Mensal</h3>
+                    <div class="valor" id="ind-comb-gasto">R$ 0,00</div>
+                </div>
+                <div class="card card-combustivel">
+                    <h3>Abastecimentos no Mês</h3>
+                    <div class="valor" id="ind-comb-qtd">0</div>
+                </div>
+                <div class="card card-combustivel">
+                    <h3>Viatura Maior Consumo</h3>
+                    <div class="valor" id="ind-comb-maior">-</div>
+                </div>
+                <div class="card card-combustivel">
+                    <h3>Média de Consumo (R$)</h3>
+                    <div class="valor" id="ind-comb-media">R$ 0,00</div>
+                </div>
+            </div>
+
+            <div class="combustivel-grid-layout">
+                <div class="coluna-esquerda-combustivel">
+                    <div class="form-combustivel-box">
+                        <h3 id="comb-titulo-form">Cadastrar Abastecimento</h3>
+                        <input type="hidden" id="comb-input-index" value="">
+                        
+                        <label>Nome da Viatura:</label>
+                        <input type="text" id="comb-input-viatura" placeholder="Ex: Viatura 01">
+                        
+                        <label>Placa:</label>
+                        <input type="text" id="comb-input-placa" placeholder="Ex: ABC-1234">
+                        
+                        <label>Cartão de Combustível:</label>
+                        <input type="text" id="comb-input-cartao" placeholder="Ex: Cartão Final 4321">
+                        
+                        <label>Data do Abastecimento:</label>
+                        <input type="date" id="comb-input-data">
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div>
+                                <label>Quantidade (Litros):</label>
+                                <input type="number" id="comb-input-litros" placeholder="Ex: 40" step="0.01" min="0.01">
+                            </div>
+                            <div>
+                                <label>Valor Abastecido (R$):</label>
+                                <input type="number" id="comb-input-valor" placeholder="Ex: 250.00" step="0.01" min="0.01">
+                            </div>
+                        </div>
+                        
+                        <label>KM Atual:</label>
+                        <input type="number" id="comb-input-km" placeholder="Ex: 54000" min="1">
+                        
+                        <label>Tipo de Combustível:</label>
+                        <select id="comb-input-tipo">
+                            <option value="Gasolina Comum">Gasolina Comum</option>
+                            <option value="Gasolina Aditivada">Gasolina Aditivada</option>
+                            <option value="Etanol">Etanol</option>
+                            <option value="Diesel S10">Diesel S10</option>
+                            <option value="Diesel Comum">Diesel Comum</option>
+                            <option value="GNV">GNV</option>
+                        </select>
+                        
+                        <label>Observação (Opcional):</label>
+                        <input type="text" id="comb-input-obs" placeholder="Ex: Abastecimento em viagem">
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button class="primary" style="margin-top:10px; flex:1;" id="comb-btn-salvar" onclick="salvarRegistroCombustivel()">Salvar Registro</button>
+                            <button class="secondary" style="margin-top:10px; display:none;" id="comb-btn-cancelar" onclick="cancelarEdicaoCombustivel()">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:25px;">
+                    <div class="combustivel-painel-relatorio" id="area-impressao-combustivel">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+                            <div>
+                                <h2 style="margin:0; color:var(--primary); font-size:20px;">Histórico de Consumo</h2>
+                                <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Relatório e controle gerencial das viaturas corporativas.</p>
+                            </div>
+                            <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarCombustivelPDF()">📄 Exportar Relatório</button>
+                        </div>
+
+                        <div class="heatmap-controles" data-html2pdf-ignore="true">
+                            <button class="secondary" onclick="alterarMesCombustivel(-1)">◀ Mês Anterior</button>
+                            <div class="heatmap-mes-titulo" id="comb-mes-ano-texto">Mês Corrente</div>
+                            <button class="secondary" onclick="alterarMesCombustivel(1)">Próximo Mês ▶</button>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Viatura</th>
+                                    <th>Placa</th>
+                                    <th>Cartão</th>
+                                    <th>Data</th>
+                                    <th>Litros</th>
+                                    <th>Valor</th>
+                                    <th>KM</th>
+                                    <th>Combustível</th>
+                                    <th>Observação</th>
+                                    <th data-html2pdf-ignore="true">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpo-combustivel"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="grafico-combustivel-box" data-html2pdf-ignore="true">
+                        <h3 style="margin-top:0; color:var(--primary); font-size:14px; text-transform:uppercase; margin-bottom: 20px;">📈 Indicadores de Desempenho</h3>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:20px;">
+                            <div style="height:220px; position:relative; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+                                <h4 style="text-align:center; font-size:11px; color:var(--secondary); margin-top:0;">Gasto por Viatura</h4>
+                                <canvas id="chartCombustivelGasto"></canvas>
+                            </div>
+                            <div style="height:220px; position:relative; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+                                <h4 style="text-align:center; font-size:11px; color:var(--secondary); margin-top:0;">Consumo Mensal (Litros/Dia)</h4>
+                                <canvas id="chartCombustivelLitros"></canvas>
+                            </div>
+                            <div style="height:220px; position:relative; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+                                <h4 style="text-align:center; font-size:11px; color:var(--secondary); margin-top:0;">Ranking de Consumo</h4>
+                                <canvas id="chartCombustivelRanking"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBL4Nka91iGIAWSTfvAmsqDHCj2KMhWZ70",
+            authDomain: "sentinela-ops-profissional.firebaseapp.com",
+            projectId: "sentinela-ops-profissional",
+            storageBucket: "sentinela-ops-profissional.firebasestorage.app",
+            messagingSenderId: "458111218365",
+            appId: "1:458111218365:web:0f3b41ab7c2ceb7feebdd4"
         };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function limparFormRonda() {
-    document.getElementById('r-km').value = "";
-    document.getElementById('r-obs').value = "";
-    document.getElementById('r-func').value = "";
-    document.getElementById('r-func-mat').value = "";
-    fotoBase64 = "";
-    document.getElementById('r-foto').value = "";
-    document.getElementById('filtro-posto-ronda').value = "";
-}
-
-function gerarRelatorioPlantao() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const p = db.perfil;
-    let y = 20;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("RELATÓRIO DE PLANTÃO OPERACIONAL", 105, y, { align: "center" });
-    y += 15;
-    doc.setFontSize(10);
-    doc.text("DADOS DO OPERADOR", 10, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Operador: ${p.nome || "N/A"}`, 10, y);
-    doc.text(`Cargo: ${p.cargo || "N/A"}`, 100, y);
-    y += 5;
-    doc.text(`Matrícula: ${p.matricula || "N/A"}`, 10, y);
-    doc.text(`Data do Relatório: ${new Date().toLocaleDateString('pt-BR')}`, 100, y);
-    y += 10;
-    doc.setLineWidth(0.5);
-    doc.line(10, y, 200, y); y += 10;
-    doc.setFont("helvetica", "bold"); doc.text("REGISTROS DE ATIVIDADES", 10, y); y += 8;
-    db.rondas.forEach((r, index) => {
-        if(y > 260) { doc.addPage(); y = 20; }
-        doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-        doc.text(`${index + 1}. POSTO: ${r.posto.toUpperCase()}`, 10, y);
-        y += 5; doc.setFont("helvetica", "normal");
-        doc.text(`Hora: ${r.hora} | Colaborador: ${r.colaborador}`, 15, y);
-        y += 5; doc.text(`Motivo: ${r.motivo} | KM: ${r.km}`, 15, y);
-        y += 5; 
-        const obs = doc.splitTextToSize(r.obs, 180); doc.text(obs, 15, y);
-        y += (obs.length * 5) + 5; doc.setDrawColor(200); doc.line(15, y - 2, 195, y - 2); y += 5;
-    });
-    doc.save(`Relatorio_Plantao_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`);
-}
-
-// ==========================================
-//    FUNÇÕES EXCLUSIVAS DO PAINEL ADMIN
-// ==========================================
-
-async function carregarUsuariosParaAdmin() {
-    try {
-        const snap = await fs.collection("usuarios").get();
-        listaUsuariosAdmin = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        firebase.initializeApp(firebaseConfig);
+         
+        const auth = firebase.auth();
+        const fs = firebase.firestore();
         
-        const sel = document.getElementById('adm-usuario');
-        if(!sel) return;
-        sel.innerHTML = '<option value="">Selecione o Operador...</option>';
-        
-        listaUsuariosAdmin.sort((a,b) => (a.nome || "").localeCompare(b.nome || ""));
-        listaUsuariosAdmin.forEach(u => {
-            sel.innerHTML += `<option value="${u.id}">${u.nome || u.email} (${u.cargo || 'Operador'})</option>`;
+        let rondas = []; 
+        let listaPostos = [];
+        let visitorsRegistrados = []; 
+        let chartFin = null;
+        let postoSelecionadoAtual = "";
+         
+        let dataFiltroAlvo = new Date();
+        let dataFiltroFinanceiro = new Date();
+        let paginaAtualPosto = 1;
+        const registrosPorPagina = 10;
+        let postosFiltrados = [];
+        let usuarioLogadoPermissao = "leitor";
+        let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro')) || [
+            { posto: "Zaffari Bourbon", data: "2026-05-10", motivo: "Atraso no rendimento do funcionário", horas: 2, valor: 120.00 },
+            { posto: "Shopping João Pessoa", data: "2026-05-12", motivo: "Falta injustificada de colaborador", horas: 4, valor: 250.00 }
+        ];
+
+        /* VARIÁVEIS OBRIGATÓRIAS - COMBUSTÍVEL */
+        let registrosCombustivel = JSON.parse(localStorage.getItem('sentinela_combustivel')) || [];
+        let chartCombustivel = null;
+        let chartCombustivelLitros = null;
+        let chartCombustivelRanking = null;
+        let dataFiltroCombustivel = new Date();
+
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                const doc = await fs.collection("usuarios").doc(user.uid).get();
+                const userEmail = user.email ? user.email.toLowerCase() : "";
+                
+                if ((doc.exists && (doc.data().role === "admin" || doc.data().role === "gerencia")) || 
+                    ["admin@sentinela.com", "gerencia@sentinela.com"].includes(userEmail)) {
+                    usuarioLogadoPermissao = "admin";
+                } else {
+                    usuarioLogadoPermissao = "leitor";
+                }
+                
+                document.getElementById('secao-login').style.display = 'none';
+                document.getElementById('nav-lateral').style.display = 'flex';
+                document.getElementById('conteudo-painel').style.display = 'block';
+                ouvirDados();
+            } else {
+                document.getElementById('secao-login').style.display = 'flex';
+                document.getElementById('nav-lateral').style.display = 'none';
+                document.getElementById('conteudo-painel').style.display = 'none';
+            }
         });
-    } catch (e) {
-        console.error("Erro ao carregar usuários para o painel:", e);
-    }
-}
 
-function atualizarVtrAdmin() {
-    const uidSelecionado = document.getElementById('adm-usuario').value;
-    const usuario = listaUsuariosAdmin.find(u => u.id === uidSelecionado);
-    const inputPlaca = document.getElementById('adm-placa');
-    if(inputPlaca) {
-        inputPlaca.value = usuario ? (usuario.placa || "SEM VTR") : "";
-    }
-}
+        function fazerLogin() {
+            auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value)
+                .catch(() => document.getElementById('erro-login').innerText = "Falha no login");
+        }
 
-function atualizarSelectPostosAdmin() {
-    const sel = document.getElementById('adm-posto');
-    if(!sel) return;
-    sel.innerHTML = '<option value="">Selecione o posto...</option>';
-    db.postos.forEach(p => sel.innerHTML += `<option value="${p.nome}">${p.nome}</option>`);
-}
+        function fazerLogout() {
+            auth.signOut();
+        }
 
-async function salvarRondaComoAdmin() {
-    const uidOperador = document.getElementById('adm-usuario').value;
-    const posto = document.getElementById('adm-posto').value;
-    const dataInput = document.getElementById('adm-data').value;
-    const horaInput = document.getElementById('adm-hora').value;
+        function alternarVisao(id) {
+            document.querySelectorAll('.view-secao').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('view-' + id).classList.add('active');
+            if(window.event && window.event.currentTarget) {
+                window.event.currentTarget.classList.add('active');
+            } else {
+                if(id === 'administracao') document.getElementById('btn-menu-admin').classList.add('active');
+                if(id === 'combustivel') document.getElementById('btn-menu-combustivel').classList.add('active');
+            }
+            
+            let tituloAba = id.toUpperCase();
+            if(id === 'administracao') tituloAba = 'ADMINISTRAÇÃO CORPORATIVA';
+            if(id === 'combustivel') tituloAba = 'CONTROLE DE COMBUSTÍVEL';
+            document.getElementById('titulo-aba').innerText = tituloAba;
+            
+            if(id === 'financeiro') {
+                cancelarEdicaoFinanceira();
+                renderizarFinanceiro();
+            }
+            if(id === 'administracao') {
+                limparFormularioAdmin();
+            }
+            if(id === 'combustivel') {
+                cancelarEdicaoCombustivel();
+                renderizarCombustivel();
+            }
+        }
 
-    if(!uidOperador) return alert("Selecione o operador que receberá a ronda!");
-    if(!posto) return alert("Selecione o posto!");
-    if(!dataInput || !horaInput) return alert("Preencha data e hora do evento!");
+        function ouvirDados() {
+            fs.collection('postos').onSnapshot(snap => {
+                listaPostos = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                listaPostos.sort((a, b) => {
+                    const nomeA = a.nome ? a.nome.toLowerCase() : '';
+                    const nomeB = b.nome ? b.nome.toLowerCase() : '';
+                    return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+                });
+                filtrarETubularPostos();
+                renderizarSeletorPostosCalor();
+                atualizarDropdownsFinanceiro();
+                atualizarDropdownsAdmin();
+                document.getElementById('postos-p-total').innerText = listaPostos.length;
+            });
 
-    const dataFormatada = dataInput;
-    const checklistPadrao = {
-        "APRESENTAÇÃO": "OK", "UNIFORME": "OK", "POSTURA": "OK",
-        "LIVRO OCO.": "OK", "MATERIAL": "OK", "OUTROS": "OK"
-    };
-    const novaRondaAdmin = {
-        id: Date.now(),
-        uid: uidOperador, 
-        posto: posto,
-        motivo: document.getElementById('adm-motivo').value,
-        km: document.getElementById('adm-km').value || '0',
-        data: dataFormatada,
-        hora: horaInput,
-        colaborador: document.getElementById('adm-func').value || "N/A",
-        obs: document.getElementById('adm-obs').value + " (Lançado via Painel Admin)",
-        checklist: checklistPadrao,
-        foto: "", 
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    try {
-        await fs.collection("rondas").add(novaRondaAdmin);
-        document.getElementById('adm-km').value = "";
-        document.getElementById('adm-func').value = "";
-        document.getElementById('adm-obs').value = "";
-        alert("✅ Ronda inserida com sucesso no perfil do operador!");
-    } catch(e) {
-        alert("Erro técnico ao injetar ronda no banco remoto: " + e.message);
-    }
-}
-</script>
+            fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
+                rondas = snap.docs.map(d => d.data());
+                if(postoSelecionadoAtual) {
+                    desenharCalor(postoSelecionadoAtual);
+                }
+            });
+
+            fs.collection('visitantes_heatmap').orderBy('criadoEm', 'desc').onSnapshot(snap => {
+                visitorsRegistrados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderizarTabelaAdmin();
+                if(postoSelecionadoAtual) {
+                     desenharCalor(postoSelecionadoAtual);
+                }
+            }, err => {
+                console.error("Erro ao escutar visitantes: ", err);
+            });
+        }
+
+        function filtrarETubularPostos() {
+            const termoBusca = document.getElementById('busca-posto-input').value.toLowerCase();
+            postosFiltrados = listaPostos.filter(p => {
+                const nome = p.nome ? p.nome.toLowerCase() : '';
+                const cidade = p.cidade ? p.cidade.toLowerCase() : '';
+                return nome.includes(termoBusca) || cidade.includes(termoBusca);
+            });
+            const totalPaginas = Math.ceil(postosFiltrados.length / registrosPorPagina) || 1;
+            if (paginaAtualPosto > totalPaginas) paginaAtualPosto = totalPaginas;
+            document.getElementById('btn-pag-anterior').disabled = (paginaAtualPosto === 1);
+            document.getElementById('btn-pag-proxima').disabled = (paginaAtualPosto === totalPaginas);
+            document.getElementById('indicador-paginacao').innerText = `Página ${paginaAtualPosto} de ${totalPaginas}`;
+            
+            const indiceInicio = (paginaAtualPosto - 1) * registrosPorPagina;
+            const indiceFim = indiceInicio + registrosPorPagina;
+            const postosExibidos = postosFiltrados.slice(indiceInicio, indiceFim);
+            const corpo = document.getElementById('corpo-postos');
+            corpo.innerHTML = "";
+            postosExibidos.forEach(p => {
+                corpo.innerHTML += `<tr><td>${p.nome}</td><td>${p.cidade || 'N/A'}</td></tr>`;
+            });
+        }
+
+        function mudarPaginaPosto(direcao) {
+            paginaAtualPosto += direcao;
+            filtrarETubularPostos();
+        }
+
+        function renderizarSeletorPostosCalor() {
+            const select = document.getElementById('sel-posto-calor');
+            let html = '<option value="">-- Selecione um Posto da Lista --</option>';
+            listaPostos.forEach(p => {
+                html += `<option value="${p.nome}">🏢 ${p.nome}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        function atualizarDropdownsFinanceiro() {
+            const selectForm = document.getElementById('fin-input-posto');
+            let html = '';
+            listaPostos.forEach(p => {
+                html += `<option value="${p.nome}">${p.nome}</option>`;
+            });
+            selectForm.innerHTML = html;
+        }
+
+        function atualizarDropdownsAdmin() {
+            const selectForm = document.getElementById('admin-input-posto');
+            let html = '';
+            listaPostos.forEach(p => {
+                html += `<option value="${p.nome}">${p.nome}</option>`;
+            });
+            if(selectForm) selectForm.innerHTML = html;
+        }
+
+        function dispararMudancaSeletorPosto() {
+            const select = document.getElementById('sel-posto-calor');
+            const nomePosto = select.value;
+            postoSelecionadoAtual = nomePosto;
+            if(nomePosto) {
+                document.getElementById('nome-posto-selecionado').innerText = nomePosto;
+                desenharCalor(nomePosto);
+            } else {
+                document.getElementById('nome-posto-selecionado').innerText = "Nenhum posto selecionado";
+                document.getElementById('heatmap-container').innerHTML = "";
+            }
+        }
+
+        function alterarMes(fator) {
+            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
+            if(postoSelecionadoAtual) {
+                desenharCalor(postoSelecionadoAtual);
+            } else {
+                atualizarTextoMesAno();
+            }
+        }
+
+        function atualizarTextoMesAno() {
+            const textoMesAno = dataFiltroAlvo.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
+            document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
+        }
+
+
+        function parseDataFlex(dataStr) {
+            if (!dataStr || typeof dataStr !== 'string') return null;
+
+            if (dataStr.includes('-')) {
+                const partes = dataStr.split('-');
+                if (partes.length === 3) {
+                    return {
+                        ano: parseInt(partes[0], 10),
+                        mes: parseInt(partes[1], 10) - 1,
+                        dia: parseInt(partes[2], 10)
+                    };
+                }
+            }
+
+            if (dataStr.includes('/')) {
+                const partes = dataStr.split('/');
+                if (partes.length === 3) {
+                    return {
+                        ano: parseInt(partes[2], 10),
+                        mes: parseInt(partes[1], 10) - 1,
+                        dia: parseInt(partes[0], 10)
+                    };
+                }
+            }
+
+            return null;
+        }
+
+        function desenharCalor(nomePosto) {
+            atualizarTextoMesAno();
+            const container = document.getElementById('heatmap-container');
+            if(!container) return;
+            container.innerHTML = "";
+            
+            const anoAlvo = dataFiltroAlvo.getFullYear();
+            const mesAlvo = dataFiltroAlvo.getMonth();
+            const primeiroDiaDaSemana = new Date(anoAlvo, mesAlvo, 1).getDay();
+            const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
+            
+            const volumetriaDiaria = {};
+            for (let d = 1; d <= totalDiasNoMes; d++) {
+                volumetriaDiaria[d] = 0;
+            }
+
+            visitorsRegistrados.forEach(v => {
+                if (v.posto === nomePosto && v.data) {
+                    const partes = v.data.split('-'); 
+                    if (partes.length === 3) {
+                        const anoReg = parseInt(partes[0], 10);
+                        const mesReg = parseInt(partes[1], 10) - 1; 
+                        const diaReg = parseInt(partes[2], 10);
+                        
+                        if (anoReg === anoAlvo && mesReg === mesAlvo) {
+                            volumetriaDiaria[diaReg] = (volumetriaDiaria[diaReg] || 0) + (parseInt(v.visitantes, 10) || 0);
+                        }
+                    }
+                }
+            });
+
+            rondas.forEach(r => {
+                if (r.posto === nomePosto && r.data) {
+                    const dataReg = parseDataFlex(r.data);
+
+                    if (dataReg && dataReg.ano === anoAlvo && dataReg.mes === mesAlvo) {
+                        const incremento = r.visitantes ? parseInt(r.visitantes, 10) : 1;
+                        volumetriaDiaria[dataReg.dia] = (volumetriaDiaria[dataReg.dia] || 0) + incremento;
+                    }
+                }
+            });
+
+            for (let i = 0; i < primeiroDiaDaSemana; i++) {
+                const BlocoVazio = document.createElement('div');
+                BlocoVazio.style.visibility = 'hidden';
+                container.appendChild(BlocoVazio);
+            }
+
+            for (let dia = 1; dia <= totalDiasNoMes; dia++) {
+                const totalVisitantes = volumetriaDiaria[dia] || 0;
+                let classeIntensidade = "intensidade-0";
+
+                if (totalVisitantes === 0) {
+                    classeIntensidade = "intensidade-0";
+                } else if (totalVisitantes >= 1 && totalVisitantes <= 3) {
+                    classeIntensidade = "intensidade-1";
+                } else if (totalVisitantes >= 4 && totalVisitantes <= 7) {
+                    classeIntensidade = "intensidade-2";
+                } else if (totalVisitantes >= 8 && totalVisitantes <= 12) {
+                    classeIntensidade = "intensidade-3";
+                } else if (totalVisitantes >= 13) {
+                    classeIntensidade = "intensidade-4";
+                }
+
+                const celulaDia = document.createElement('div');
+                celulaDia.className = `heatmap-dia ${classeIntensidade}`;
+                celulaDia.innerHTML = `${dia}<span>${totalVisitantes} vis.</span>`;
+                container.appendChild(celulaDia);
+            }
+        }
+
+        function exportarMapaParaPDF() {
+            if (!postoSelecionadoAtual) {
+                alert("Por favor, selecione um posto antes de gerar o PDF.");
+                return;
+            }
+            const elemento = document.getElementById('area-impressao-pdf');
+            const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
+            const nomeArquivo = `Mapa_Calor_${postoSelecionadoAtual.replace(/\s+/g, '_')}_${mesAnoTexto}.pdf`;
+            const opcoes = {
+                margin: 10,
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opcoes).from(elemento).save();
+        }
+
+        function alterarMesFinanceiro(fator) {
+            dataFiltroFinanceiro.setMonth(dataFiltroFinanceiro.getMonth() + fator);
+            renderizarFinanceiro();
+        }
+
+        function renderizarFinanceiro() {
+            const textoMesAno = dataFiltroFinanceiro.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
+            document.getElementById('fin-mes-ano-texto').innerText = textoMesAno;
+            
+            const anoAlvo = dataFiltroFinanceiro.getFullYear();
+            const mesAlvo = dataFiltroFinanceiro.getMonth();
+            const corpo = document.getElementById('corpo-financeiro');
+            corpo.innerHTML = "";
+            let totalHoras = 0;
+            let totalValor = 0;
+            const perdasPorPosto = {};
+            
+            registrosFinanceiros.forEach((r, index) => {
+                const partesData = r.data.split('-');
+                const anoReg = parseInt(partesData[0]);
+                const mesReg = parseInt(partesData[1]) - 1;
+                
+                if (anoReg === anoAlvo && mesReg === mesAlvo) {
+                    totalHoras += parseInt(r.horas);
+                    totalValor += parseFloat(r.valor);
+                    perdasPorPosto[r.posto] = (perdasPorPosto[r.posto] || 0) + parseFloat(r.valor);
+                    
+                    corpo.innerHTML += `<tr>
+                        <td>${r.posto}</td>
+                        <td>${partesData[2]}/${partesData[1]}/${partesData[0]}</td>
+                        <td>${r.motivo}</td>
+                        <td>${r.horas}h</td>
+                        <td>R$ ${parseFloat(r.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        <td data-html2pdf-ignore="true">
+                            <button class="btn-acao btn-editar" onclick="carregarEdicaoFinanceira(${index})">Editar</button>
+                            <button class="btn-acao btn-excluir" onclick="excluirRegistroFinanceiro(${index})">Excluir</button>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            document.getElementById('fin-total-horas').innerText = totalHoras + "h";
+            document.getElementById('fin-total-valor').innerText = "R$ " + totalValor.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            
+            desenharGraficoFinanceiro(perdasPorPosto);
+        }
+
+        function salvarHoraIneficiente() {
+            const index = document.getElementById('fin-input-index').value;
+            const registro = {
+                posto: document.getElementById('fin-input-posto').value,
+                data: document.getElementById('fin-input-data').value,
+                horas: parseInt(document.getElementById('fin-input-horas').value),
+                valor: parseFloat(document.getElementById('fin-input-valor').value),
+                motivo: document.getElementById('fin-input-motivo').value
+            };
+
+            if (!registro.data || !registro.horas || !registro.valor || !registro.motivo) {
+                alert("Preencha todos os campos do formulário financeiro.");
+                return;
+            }
+
+            if(index === "") {
+                registrosFinanceiros.push(registro);
+            } else {
+                registrosFinanceiros[parseInt(index)] = registro;
+            }
+
+            localStorage.setItem('sentinela_financeiro', JSON.stringify(registrosFinanceiros));
+            cancelarEdicaoFinanceira();
+            renderizarFinanceiro();
+        }
+
+        function carregarEdicaoFinanceira(index) {
+            const r = registrosFinanceiros[index];
+            document.getElementById('fin-input-index').value = index;
+            document.getElementById('fin-input-posto').value = r.posto;
+            document.getElementById('fin-input-data').value = r.data;
+            document.getElementById('fin-input-horas').value = r.horas;
+            document.getElementById('fin-input-valor').value = r.valor;
+            document.getElementById('fin-input-motivo').value = r.motivo;
+            document.getElementById('fin-titulo-formulario').innerText = "Editar Lançamento";
+            document.getElementById('fin-btn-salvar').innerText = "Atualizar";
+            document.getElementById('fin-btn-cancelar').style.display = "block";
+        }
+
+        function cancelarEdicaoFinanceira() {
+            document.getElementById('fin-input-index').value = "";
+            document.getElementById('fin-input-data').value = "";
+            document.getElementById('fin-input-horas').value = "";
+            document.getElementById('fin-input-valor').value = "";
+            document.getElementById('fin-input-motivo').value = "";
+            
+            document.getElementById('fin-titulo-formulario').innerText = "Lançamento de Horas";
+            document.getElementById('fin-btn-salvar').innerText = "Registrar";
+            document.getElementById('fin-btn-cancelar').style.display = "none";
+        }
+
+        function excluirRegistroFinanceiro(index) {
+            if(confirm("Deseja realmente remover este lançamento financeiro operacional?")) {
+                registrosFinanceiros.splice(index, 1);
+                localStorage.setItem('sentinela_financeiro', JSON.stringify(registrosFinanceiros));
+                renderizarFinanceiro();
+            }
+        }
+
+        function desenharGraficoFinanceiro(dadosPerdas) {
+            const ctx = document.getElementById('chartFinanceiro');
+            if(!ctx) return;
+            
+            if(chartFin) chartFin.destroy();
+            
+            const labels = Object.keys(dadosPerdas);
+            const valores = Object.values(dadosPerdas);
+            if(labels.length === 0) {
+                labels.push("Nenhum Desperdício");
+                valores.push(0);
+            }
+
+            chartFin = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Prejuízo acumulado (R$)',
+                        data: valores,
+                        backgroundColor: '#ef4444',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function exportarFinanceiroPDF() {
+            const elemento = document.getElementById('area-impressao-financeiro');
+            const mesAnoTexto = document.getElementById('fin-mes-ano-texto').innerText.replace(' de ', '_');
+            const nomeArquivo = `Relatorio_Financeiro_Ineficiencias_${mesAnoTexto}.pdf`;
+            const opcoes = {
+                margin: 10,
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opcoes).from(elemento).save();
+        }
+
+        function mostrarLoadingAdmin(estado) {
+            const loader = document.getElementById('admin-loading');
+            if (loader) loader.style.display = estado ? 'block' : 'none';
+        }
+
+        function limparFormularioAdmin() {
+            document.getElementById('admin-input-id').value = "";
+            document.getElementById('admin-input-data').value = "";
+            document.getElementById('admin-input-visitantes').value = "";
+            document.getElementById('admin-input-observacao').value = "";
+            document.getElementById('admin-titulo-formulario').innerText = "Lançamento de Visitantes";
+            document.getElementById('admin-btn-salvar').innerText = "Salvar Registro";
+            document.getElementById('admin-btn-cancelar').style.display = "none";
+        }
+
+        async function salvarVisitanteAdmin() {
+            if (usuarioLogadoPermissao !== "admin") {
+                alert("Operação bloqueada: Seu perfil de usuário possui apenas permissões de Leitura.");
+                return;
+            }
+
+            const idRegistro = document.getElementById('admin-input-id').value;
+            const posto = document.getElementById('admin-input-posto').value;
+            const data = document.getElementById('admin-input-data').value;
+            const visitantesInput = document.getElementById('admin-input-visitantes').value;
+            const observacao = document.getElementById('admin-input-observacao').value;
+            const responsavelEmail = auth.currentUser ? auth.currentUser.email : "Sistema Corporativo";
+
+            if (!posto || !data || visitantesInput === "") {
+                alert("Erro: Os campos Posto, Data e Quantidade de Visitantes são estritamente obrigatórios.");
+                return;
+            }
+
+            const visitantes = parseInt(visitantesInput, 10);
+            if (isNaN(visitantes) || visitantes < 0) {
+                alert("Erro: A quantidade de visitantes não pode conter valores negativos ou nulos.");
+                return;
+            }
+
+            mostrarLoadingAdmin(true);
+            const payload = {
+                posto: posto,
+                data: data,
+                visitantes: visitantes,
+                observacao: observacao || "",
+                responsavel: responsavelEmail,
+                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            try {
+                if (idRegistro === "") {
+                    await fs.collection('visitantes_heatmap').add(payload);
+                    alert("Sucesso: Visitantes registrados e integrados ao Heatmap com sucesso.");
+                } else {
+                    delete payload.criadoEm;
+                    await fs.collection('visitantes_heatmap').doc(idRegistro).update(payload);
+                    alert("Sucesso: Registro administrativo modificado com sucesso.");
+                }
+                limparFormularioAdmin();
+            } catch (error) {
+                console.error("Erro ao persistir dados no Firestore: ", error);
+                alert("Falha de Persistência: Verifique suas permissões nas regras de segurança do Firestore.");
+            } finally {
+                mostrarLoadingAdmin(false);
+            }
+        }
+
+        function carregarEdicaoAdmin(id) {
+            if (usuarioLogadoPermissao !== "admin") {
+                alert("Acesso Negado: Usuários comuns possuem apenas direitos de leitura.");
+                return;
+            }
+            const registro = visitorsRegistrados.find(v => v.id === id);
+            if (!registro) return;
+
+            document.getElementById('admin-input-id').value = registro.id;
+            document.getElementById('admin-input-posto').value = registro.posto;
+            document.getElementById('admin-input-data').value = registro.data;
+            document.getElementById('admin-input-visitantes').value = registro.visitantes;
+            document.getElementById('admin-input-observacao').value = registro.observacao;
+            document.getElementById('admin-titulo-formulario').innerText = "Editar Registro Administrativo";
+            document.getElementById('admin-btn-salvar').innerText = "Atualizar Registro";
+            document.getElementById('admin-btn-cancelar').style.display = "block";
+        }
+
+        async function excluirRegistroAdmin(id) {
+            if (usuarioLogadoPermissao !== "admin") {
+                alert("Acesso Negado: Perfis com papel de leitura não possuem privilégios de exclusão.");
+                return;
+            }
+
+            if (confirm("Confirmação Crítica: Deseja realmente remover em definitivo este registro da base corporativa? Essa ação alterará o Mapa de Calor imediatamente.")) {
+                mostrarLoadingAdmin(true);
+                try {
+                    await fs.collection('visitantes_heatmap').doc(id).delete();
+                    alert("Sucesso: Registro removed com sucesso.");
+                    limparFormularioAdmin();
+                } catch (error) {
+                    console.error("Erro ao deletar registro no Firestore: ", error);
+                    alert("Erro de comunicação: Não foi possível processar a remoção.");
+                } finally {
+                    mostrarLoadingAdmin(false);
+                }
+            }
+        }
+
+        function renderizarTabelaAdmin() {
+            const tabelaCorpo = document.getElementById('corpo-administrativo');
+            if (!tabelaCorpo) return;
+            tabelaCorpo.innerHTML = "";
+
+            if (visitorsRegistrados.length === 0) {
+                tabelaCorpo.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Nenhum registro de visitante encontrado no Firestore.</td></tr>`;
+                return;
+            }
+
+            visitorsRegistrados.forEach(v => {
+                const dataFormatada = v.data ? v.data.split('-').reverse().join('/') : 'N/A';
+                let dataCadastro = "N/A";
+                
+                if (v.criadoEm && typeof v.criadoEm.toDate === 'function') {
+                    dataCadastro = v.criadoEm.toDate().toLocaleString('pt-BR');
+                }
+
+                const botoesAcao = usuarioLogadoPermissao === "admin" ? 
+                    `<button class="btn-acao btn-editar" onclick="carregarEdicaoAdmin('${v.id}')">Editar</button>
+                    <button class="btn-acao btn-excluir" onclick="excluirRegistroAdmin('${v.id}')">Excluir</button>` : 
+                    `<span style="color:#94a3b8; font-size:12px; font-style:italic;">Apenas Leitura</span>`;
+
+                tabelaCorpo.innerHTML += `<tr>
+                    <td style="font-weight:600;">${v.posto}</td>
+                    <td>${dataFormatada}</td>
+                    <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:bold;">${v.visitantes}</span></td>
+                    <td>${v.observacao || '<span style="color:#cbd5e1;">-</span>'}</td>
+                    <td><small>${v.responsavel}</small></td>
+                    <td><small>${dataCadastro}</small></td>
+                    <td>${botoesAcao}</td>
+                </tr>`;
+             });
+        }
+
+        /* ----------------------------------------------------
+           FUNÇÕES DE INTEGRAÇÃO DA NOVA VIEW COMBUSTÍVEL
+        ----------------------------------------------------- */
+
+        function alterarMesCombustivel(fator) {
+            dataFiltroCombustivel.setMonth(dataFiltroCombustivel.getMonth() + fator);
+            renderizarCombustivel();
+        }
+
+        function renderizarCombustivel() {
+            const textoMesAno = dataFiltroCombustivel.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
+            document.getElementById('comb-mes-ano-texto').innerText = textoMesAno;
+            
+            const anoAlvo = dataFiltroCombustivel.getFullYear();
+            const mesAlvo = dataFiltroCombustivel.getMonth();
+            const corpo = document.getElementById('corpo-combustivel');
+            corpo.innerHTML = "";
+            
+            let totalGastoMes = 0;
+            let totalLitrosMes = 0;
+            const gastoPorViatura = {};
+            const litrosPorViatura = {};
+            let registrosFiltradosNoMes = [];
+
+            registrosCombustivel.forEach((r, index) => {
+                const partesData = r.data.split('-');
+                if(partesData.length === 3) {
+                    const anoReg = parseInt(partesData[0], 10);
+                    const mesReg = parseInt(partesData[1], 10) - 1;
+                    
+                    if (anoReg === anoAlvo && mesReg === mesAlvo) {
+                        registrosFiltradosNoMes.push(r);
+                        totalGastoMes += parseFloat(r.valor);
+                        totalLitrosMes += parseFloat(r.litros);
+                        
+                        gastoPorViatura[r.viatura] = (gastoPorViatura[r.viatura] || 0) + parseFloat(r.valor);
+                        litrosPorViatura[r.viatura] = (litrosPorViatura[r.viatura] || 0) + parseFloat(r.litros);
+                        
+                        corpo.innerHTML += `<tr>
+                            <td>${r.viatura}</td>
+                            <td>${r.placa}</td>
+                            <td>${r.cartao}</td>
+                            <td>${partesData[2]}/${partesData[1]}/${partesData[0]}</td>
+                            <td>${r.litros} L</td>
+                            <td>R$ ${parseFloat(r.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                            <td>${r.km}</td>
+                            <td>${r.tipo}</td>
+                            <td>${r.observacao || '-'}</td>
+                            <td data-html2pdf-ignore="true">
+                                <button class="btn-acao btn-editar" onclick="carregarEdicaoCombustivel(${index})">Editar</button>
+                                <button class="btn-acao btn-excluir" onclick="excluirRegistroCombustivel(${index})">Excluir</button>
+                            </td>
+                        </tr>`;
+                    }
+                }
+            });
+
+            // Atualização dos Indicadores
+            let maiorViatura = "-";
+            let maxConsumo = 0;
+            for(const [v, gasto] of Object.entries(gastoPorViatura)) {
+                if(gasto > maxConsumo) { maxConsumo = gasto; maiorViatura = v; }
+            }
+            
+            const mediaMensal = registrosFiltradosNoMes.length > 0 ? (totalGastoMes / registrosFiltradosNoMes.length) : 0;
+
+            document.getElementById('ind-comb-gasto').innerText = `R$ ${totalGastoMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            document.getElementById('ind-comb-qtd').innerText = registrosFiltradosNoMes.length;
+            document.getElementById('ind-comb-maior').innerText = maiorViatura;
+            document.getElementById('ind-comb-media').innerText = `R$ ${mediaMensal.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+
+            desenharGraficoCombustivel(gastoPorViatura, litrosPorViatura, registrosFiltradosNoMes, anoAlvo, mesAlvo);
+        }
+
+        function salvarRegistroCombustivel() {
+            const index = document.getElementById('comb-input-index').value;
+            const viatura = document.getElementById('comb-input-viatura').value.trim();
+            const placa = document.getElementById('comb-input-placa').value.trim();
+            const cartao = document.getElementById('comb-input-cartao').value.trim();
+            const data = document.getElementById('comb-input-data').value;
+            const litros = parseFloat(document.getElementById('comb-input-litros').value);
+            const valor = parseFloat(document.getElementById('comb-input-valor').value);
+            const km = parseInt(document.getElementById('comb-input-km').value, 10);
+            const tipo = document.getElementById('comb-input-tipo').value;
+            const observacao = document.getElementById('comb-input-obs').value.trim();
+
+            if(!viatura || !placa || !cartao || !data || !tipo) {
+                alert("Bloqueio de Validação: Preencha todos os campos obrigatórios textuais e de data.");
+                return;
+            }
+
+            if(isNaN(litros) || litros <= 0 || isNaN(valor) || valor < 0 || isNaN(km) || km <= 0) {
+                alert("Bloqueio de Validação: Valores numéricos inválidos. O sistema impede litros zerados, valores negativos ou KM inválido.");
+                return;
+            }
+
+            const registro = { viatura, placa, cartao, data, litros, valor, km, tipo, observacao };
+
+            if(index === "") {
+                registrosCombustivel.push(registro);
+            } else {
+                registrosCombustivel[parseInt(index, 10)] = registro;
+            }
+
+            localStorage.setItem('sentinela_combustivel', JSON.stringify(registrosCombustivel));
+            cancelarEdicaoCombustivel();
+            renderizarCombustivel();
+        }
+
+        function carregarEdicaoCombustivel(index) {
+            const r = registrosCombustivel[index];
+            if(!r) return;
+            
+            document.getElementById('comb-input-index').value = index;
+            document.getElementById('comb-input-viatura').value = r.viatura;
+            document.getElementById('comb-input-placa').value = r.placa;
+            document.getElementById('comb-input-cartao').value = r.cartao;
+            document.getElementById('comb-input-data').value = r.data;
+            document.getElementById('comb-input-litros').value = r.litros;
+            document.getElementById('comb-input-valor').value = r.valor;
+            document.getElementById('comb-input-km').value = r.km;
+            document.getElementById('comb-input-tipo').value = r.tipo;
+            document.getElementById('comb-input-obs').value = r.observacao || "";
+            
+            document.getElementById('comb-titulo-form').innerText = "Editar Abastecimento";
+            document.getElementById('comb-btn-salvar').innerText = "Atualizar Registro";
+            document.getElementById('comb-btn-cancelar').style.display = "block";
+        }
+
+        function cancelarEdicaoCombustivel() {
+            document.getElementById('comb-input-index').value = "";
+            document.getElementById('comb-input-viatura').value = "";
+            document.getElementById('comb-input-placa').value = "";
+            document.getElementById('comb-input-cartao').value = "";
+            document.getElementById('comb-input-data').value = "";
+            document.getElementById('comb-input-litros').value = "";
+            document.getElementById('comb-input-valor').value = "";
+            document.getElementById('comb-input-km').value = "";
+            document.getElementById('comb-input-obs').value = "";
+            
+            document.getElementById('comb-titulo-form').innerText = "Cadastrar Abastecimento";
+            document.getElementById('comb-btn-salvar').innerText = "Salvar Registro";
+            document.getElementById('comb-btn-cancelar').style.display = "none";
+        }
+
+        function excluirRegistroCombustivel(index) {
+            if(confirm("Confirmação: Deseja excluir permanentemente este registro de abastecimento?")) {
+                registrosCombustivel.splice(index, 1);
+                localStorage.setItem('sentinela_combustivel', JSON.stringify(registrosCombustivel));
+                renderizarCombustivel();
+            }
+        }
+
+        function desenharGraficoCombustivel(gastoViatura, litrosViatura, filtrados, anoAlvo, mesAlvo) {
+            const ctx1 = document.getElementById('chartCombustivelGasto');
+            const ctx2 = document.getElementById('chartCombustivelLitros');
+            const ctx3 = document.getElementById('chartCombustivelRanking');
+
+            if(!ctx1 || !ctx2 || !ctx3) return;
+
+            if(chartCombustivel) chartCombustivel.destroy();
+            if(chartCombustivelLitros) chartCombustivelLitros.destroy();
+            if(chartCombustivelRanking) chartCombustivelRanking.destroy();
+
+            const viaturas = Object.keys(gastoViatura);
+            const gastos = Object.values(gastoViatura);
+
+            // Preparação dos dados para a linha do tempo (Gráfico 2 - Consumo Mensal por Litros)
+            const diasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
+            const litrosPorDia = {};
+            for(let d=1; d<=diasNoMes; d++) litrosPorDia[d] = 0;
+            
+            filtrados.forEach(r => {
+                const diaStr = r.data.split('-')[2];
+                if(diaStr) {
+                    litrosPorDia[parseInt(diaStr, 10)] += parseFloat(r.litros);
+                }
+            });
+
+            // Preparação dos dados para o Ranking Operacional (Gráfico 3)
+            let arrayRanking = Object.keys(litrosViatura).map(v => ({ viatura: v, litros: litrosViatura[v] }));
+            arrayRanking.sort((a, b) => b.litros - a.litros);
+            const rankingViaturas = arrayRanking.map(item => item.viatura);
+            const rankingLitros = arrayRanking.map(item => item.litros);
+
+            // Gráfico 1: Comparativo de gasto por viatura (Bar)
+            chartCombustivel = new Chart(ctx1.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: viaturas.length ? viaturas : ['N/A'],
+                    datasets: [{ label: 'Gasto no Mês (R$)', data: gastos.length ? gastos : [0], backgroundColor: '#3b82f6', borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Gráfico 2: Consumo mensal por litros na linha do tempo
+            chartCombustivelLitros = new Chart(ctx2.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: Object.keys(litrosPorDia),
+                    datasets: [{ label: 'Litros Consumidos', data: Object.values(litrosPorDia), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // Gráfico 3: Ranking operacional de consumo (Barra Horizontal)
+            chartCombustivelRanking = new Chart(ctx3.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: rankingViaturas.length ? rankingViaturas : ['N/A'],
+                    datasets: [{ label: 'Total Litros', data: rankingLitros.length ? rankingLitros : [0], backgroundColor: '#f97316', borderRadius: 4 }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function exportarCombustivelPDF() {
+            const elemento = document.getElementById('area-impressao-combustivel');
+            const opcoes = {
+                margin: 10,
+                filename: 'Relatorio_Combustivel_MENSAL.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opcoes).from(elemento).save();
+        }
+    </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
