@@ -86,10 +86,57 @@
         .heatmap-controles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; }
         .heatmap-mes-titulo { font-size: 16px; font-weight: bold; color: var(--primary); text-transform: capitalize; }
         
-        /* Grid do Mapa de Calor */
-        .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 100%; margin-top: 15px; }
-        .heatmap-dia { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #e2e8f0; }
-        .heatmap-dia span { font-size: 10px; font-weight: normal; margin-top: 2px; }
+        /* ESTILOS DA NOVA MATRIZ DE CALOR (HEATMAP) */
+.tabela-matriz-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px;
+}
+.tabela-matriz {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 800px;
+}
+.tabela-matriz th, .tabela-matriz td {
+    border: 1px solid #e2e8f0;
+    padding: 6px;
+    text-align: center;
+    font-size: 12px;
+}
+.tabela-matriz th {
+    background: var(--secondary);
+    color: white;
+    font-weight: bold;
+}
+/* Trava a primeira coluna (Nome do Posto) na tela ao dar scroll horizontal */
+.tabela-matriz th.posto-col, .tabela-matriz td.posto-col {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    text-align: left;
+    min-width: 180px;
+    font-weight: bold;
+    color: var(--primary);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+.tabela-matriz th.posto-col {
+    background: var(--primary);
+    color: white;
+    z-index: 11;
+}
+/* Formato de quadrado para a célula do dia */
+.celula-calor {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin: 0 auto;
+}
         
         /* Classes de Intensidade Ajustadas com a Nova Escala */
         .intensidade-0 { background: var(--calor-0); color: #94a3b8; }
@@ -188,30 +235,34 @@
         </section>
 
         <section id="view-calor" class="view-secao">
-            <div class="heatmap-wrapper-vertical">
+            <div class="heatmap-wrapper-vertical" style="max-width: 100%;">
+                
                 <div class="seletor-posto-container" data-html2pdf-ignore="true">
-                    <label for="sel-posto-calor" style="font-size:14px; font-weight:bold; color:var(--secondary); display:block; margin-bottom:8px;">🏢 Selecione o Posto Alvo:</label>
-                    <select id="sel-posto-calor" onchange="dispararMudancaSeletorPosto()">
-                        <option value="">Aguardando carregamento de postos...</option>
-                    </select>
+                    <label for="filtro-postos-matriz" style="font-size:14px; font-weight:bold; color:var(--secondary); display:block; margin-bottom:8px;">
+                        🏢 Filtrar Postos no Mapa (Deixe vazio para visualizar todos):
+                    </label>
+                    <input type="text" id="filtro-postos-matriz" placeholder="🔍 Buscar por nome do posto..." oninput="desenharCalorMatriz()">
                 </div>
 
-                <div class="heatmap-calendario-box" id="area-impressao-pdf">
+                <div class="heatmap-calendario-box" id="area-impressao-pdf" style="overflow-x: auto; max-width: 100%;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
                         <div>
-                            <h3 id="nome-posto-selecionado" style="margin:0; color:var(--primary);">Nenhum posto selecionado</h3>
-                            <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Frequência de auditoria interna por período selecionado.</p>
+                            <h3 style="margin:0; color:var(--primary);">Matriz Gerencial de Auditorias e Visitas</h3>
+                            <p style="font-size:12px; color:#7f8c8d; margin:5px 0 0 0;">Comparativo operacional de todos os postos por dia do mês.</p>
                         </div>
                         <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
                     </div>
 
                     <div class="heatmap-controles" data-html2pdf-ignore="true">
-                        <button class="secondary" onclick="alterarMes(-1)">◀ Voltar</button>
+                        <button class="secondary" onclick="alterarMes(-1)">◀ Mês Anterior</button>
                         <div class="heatmap-mes-titulo" id="filtro-mes-ano-texto">Mês Corrente</div>
-                        <button class="secondary" onclick="alterarMes(1)">Avançar ▶</button>
+                        <button class="secondary" onclick="alterarMes(1)">Próximo Mês ▶</button>
                     </div>
 
-                    <div id="heatmap-container" class="heatmap-grid"></div>
+                    <div class="tabela-matriz-container">
+                        <table id="tabela-heatmap-matriz" class="tabela-matriz">
+                            </table>
+                    </div>
 
                     <div class="heatmap-legenda">
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-0)"></div> 0 vis.</div>
@@ -579,7 +630,7 @@
             }
         }
 
-        function ouvirDados() {
+       function ouvirDados() {
             fs.collection('postos').onSnapshot(snap => {
                 listaPostos = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 listaPostos.sort((a, b) => {
@@ -588,7 +639,7 @@
                     return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
                 });
                 filtrarETubularPostos();
-                renderizarSeletorPostosCalor();
+                desenharCalorMatriz(); 
                 atualizarDropdownsFinanceiro();
                 atualizarDropdownsAdmin();
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
@@ -596,21 +647,17 @@
 
             fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
                 rondas = snap.docs.map(d => d.data());
-                if(postoSelecionadoAtual) {
-                    desenharCalor(postoSelecionadoAtual);
-                }
+                desenharCalorMatriz(); 
             });
 
             fs.collection('visitantes_heatmap').orderBy('criadoEm', 'desc').onSnapshot(snap => {
                 visitorsRegistrados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderizarTabelaAdmin();
-                if(postoSelecionadoAtual) {
-                     desenharCalor(postoSelecionadoAtual);
-                }
+                desenharCalorMatriz(); 
             }, err => {
                 console.error("Erro ao escutar visitantes: ", err);
             });
-        }
+        } 
 
         function filtrarETubularPostos() {
             const termoBusca = document.getElementById('busca-posto-input').value.toLowerCase();
@@ -640,14 +687,7 @@
             filtrarETubularPostos();
         }
 
-        function renderizarSeletorPostosCalor() {
-            const select = document.getElementById('sel-posto-calor');
-            let html = '<option value="">-- Selecione um Posto da Lista --</option>';
-            listaPostos.forEach(p => {
-                html += `<option value="${p.nome}">🏢 ${p.nome}</option>`;
-            });
-            select.innerHTML = html;
-        }
+        
 
         function atualizarDropdownsFinanceiro() {
             const selectForm = document.getElementById('fin-input-posto');
@@ -667,26 +707,26 @@
             if(selectForm) selectForm.innerHTML = html;
         }
 
-        function dispararMudancaSeletorPosto() {
-            const select = document.getElementById('sel-posto-calor');
-            const nomePosto = select.value;
-            postoSelecionadoAtual = nomePosto;
-            if(nomePosto) {
-                document.getElementById('nome-posto-selecionado').innerText = nomePosto;
-                desenharCalor(nomePosto);
-            } else {
-                document.getElementById('nome-posto-selecionado').innerText = "Nenhum posto selecionado";
-                document.getElementById('heatmap-container').innerHTML = "";
-            }
+        
+
+       function alterarMes(fator) {
+            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
+            desenharCalorMatriz();
         }
 
-        function alterarMes(fator) {
-            dataFiltroAlvo.setMonth(dataFiltroAlvo.getMonth() + fator);
-            if(postoSelecionadoAtual) {
-                desenharCalor(postoSelecionadoAtual);
-            } else {
-                atualizarTextoMesAno();
-            }
+        function exportarMapaParaPDF() {
+            const elemento = document.getElementById('area-impressao-pdf');
+            const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
+            const nomeArquivo = `Matriz_Calor_Gerencial_${mesAnoTexto}.pdf`;
+            
+            const opcoes = {
+                margin: 5,
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, windowWidth: elemento.scrollWidth }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opcoes).from(elemento).save();
         }
 
         function atualizarTextoMesAno() {
@@ -723,94 +763,75 @@
             return null;
         }
 
-        function desenharCalor(nomePosto) {
+        function desenharCalorMatriz() {
             atualizarTextoMesAno();
-            const container = document.getElementById('heatmap-container');
-            if(!container) return;
-            container.innerHTML = "";
-            
-            const anoAlvo = dataFiltroAlvo.getFullYear();
-            const mesAlvo = dataFiltroAlvo.getMonth();
-            const primeiroDiaDaSemana = new Date(anoAlvo, mesAlvo, 1).getDay();
-            const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
-            
-            const volumetriaDiaria = {};
-            for (let d = 1; d <= totalDiasNoMes; d++) {
-                volumetriaDiaria[d] = 0;
+            const tabela = document.getElementById('tabela-heatmap-matriz');
+            if (!tabela) return;
+
+            const termoFiltro = (document.getElementById('filtro-postos-matriz')?.value || '').toLowerCase();
+            let postosParaExibir = listaPostos;
+            if (termoFiltro) {
+                postosParaExibir = listaPostos.filter(p => (p.nome || '').toLowerCase().includes(termoFiltro));
             }
 
+            const anoAlvo = dataFiltroAlvo.getFullYear();
+            const mesAlvo = dataFiltroAlvo.getMonth();
+            const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
+
+            let htmlTabela = '<thead><tr><th class="posto-col">Posto \\ Dia</th>';
+            for (let d = 1; d <= totalDiasNoMes; d++) {
+                htmlTabela += `<th>${d}</th>`;
+            }
+            htmlTabela += '</tr></thead><tbody>';
+
+            const mapaVolumetria = {};
+            postosParaExibir.forEach(p => mapaVolumetria[p.nome] = {});
+
             visitorsRegistrados.forEach(v => {
-                if (v.posto === nomePosto && v.data) {
-                    const partes = v.data.split('-'); 
-                    if (partes.length === 3) {
-                        const anoReg = parseInt(partes[0], 10);
-                        const mesReg = parseInt(partes[1], 10) - 1; 
-                        const diaReg = parseInt(partes[2], 10);
-                        
-                        if (anoReg === anoAlvo && mesReg === mesAlvo) {
-                            volumetriaDiaria[diaReg] = (volumetriaDiaria[diaReg] || 0) + (parseInt(v.visitantes, 10) || 0);
-                        }
-                    }
+                if (!v.data || mapaVolumetria[v.posto] === undefined) return;
+                const partes = v.data.split('-');
+                if (partes.length === 3 && parseInt(partes[0], 10) === anoAlvo && (parseInt(partes[1], 10) - 1) === mesAlvo) {
+                    const dia = parseInt(partes[2], 10);
+                    mapaVolumetria[v.posto][dia] = (mapaVolumetria[v.posto][dia] || 0) + (parseInt(v.visitantes, 10) || 0);
                 }
             });
 
             rondas.forEach(r => {
-                if (r.posto === nomePosto && r.data) {
-                    const dataReg = parseDataFlex(r.data);
-
-                    if (dataReg && dataReg.ano === anoAlvo && dataReg.mes === mesAlvo) {
-                        const incremento = r.visitantes ? parseInt(r.visitantes, 10) : 1;
-                        volumetriaDiaria[dataReg.dia] = (volumetriaDiaria[dataReg.dia] || 0) + incremento;
-                    }
+                if (!r.data || mapaVolumetria[r.posto] === undefined) return;
+                const dataReg = parseDataFlex(r.data);
+                if (dataReg && dataReg.ano === anoAlvo && dataReg.mes === mesAlvo) {
+                    const incremento = r.visitantes ? parseInt(r.visitantes, 10) : 1;
+                    mapaVolumetria[r.posto][dataReg.dia] = (mapaVolumetria[r.posto][dataReg.dia] || 0) + incremento;
                 }
             });
 
-            for (let i = 0; i < primeiroDiaDaSemana; i++) {
-                const BlocoVazio = document.createElement('div');
-                BlocoVazio.style.visibility = 'hidden';
-                container.appendChild(BlocoVazio);
+            if (postosParaExibir.length === 0) {
+                htmlTabela += `<tr><td colspan="${totalDiasNoMes + 1}">Nenhum posto registrado ou encontrado na busca.</td></tr>`;
+            } else {
+                postosParaExibir.forEach(p => {
+                    htmlTabela += `<tr><td class="posto-col" title="${p.nome}">${p.nome}</td>`;
+                    for (let d = 1; d <= totalDiasNoMes; d++) {
+                        const totalVis = mapaVolumetria[p.nome][d] || 0;
+                        let classeIntensidade = "intensidade-0";
+
+                        if (totalVis >= 1 && totalVis <= 3) classeIntensidade = "intensidade-1";
+                        else if (totalVis >= 4 && totalVis <= 7) classeIntensidade = "intensidade-2";
+                        else if (totalVis >= 8 && totalVis <= 12) classeIntensidade = "intensidade-3";
+                        else if (totalVis >= 13) classeIntensidade = "intensidade-4";
+
+                        const textoVisual = totalVis > 0 ? totalVis : '';
+                        htmlTabela += `<td><div class="celula-calor ${classeIntensidade}">${textoVisual}</div></td>`;
+                    }
+                    htmlTabela += `</tr>`;
+                });
             }
-
-            for (let dia = 1; dia <= totalDiasNoMes; dia++) {
-                const totalVisitantes = volumetriaDiaria[dia] || 0;
-                let classeIntensidade = "intensidade-0";
-
-                if (totalVisitantes === 0) {
-                    classeIntensidade = "intensidade-0";
-                } else if (totalVisitantes >= 1 && totalVisitantes <= 3) {
-                    classeIntensidade = "intensidade-1";
-                } else if (totalVisitantes >= 4 && totalVisitantes <= 7) {
-                    classeIntensidade = "intensidade-2";
-                } else if (totalVisitantes >= 8 && totalVisitantes <= 12) {
-                    classeIntensidade = "intensidade-3";
-                } else if (totalVisitantes >= 13) {
-                    classeIntensidade = "intensidade-4";
-                }
-
-                const celulaDia = document.createElement('div');
-                celulaDia.className = `heatmap-dia ${classeIntensidade}`;
-                celulaDia.innerHTML = `${dia}<span>${totalVisitantes} vis.</span>`;
-                container.appendChild(celulaDia);
-            }
+            htmlTabela += '</tbody>';
+            tabela.innerHTML = htmlTabela;
         }
 
-        function exportarMapaParaPDF() {
-            if (!postoSelecionadoAtual) {
-                alert("Por favor, selecione um posto antes de gerar o PDF.");
-                return;
-            }
-            const elemento = document.getElementById('area-impressao-pdf');
-            const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
-            const nomeArquivo = `Mapa_Calor_${postoSelecionadoAtual.replace(/\s+/g, '_')}_${mesAnoTexto}.pdf`;
-            const opcoes = {
-                margin: 10,
-                filename: nomeArquivo,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opcoes).from(elemento).save();
-        }
+
+
+    
 
         function alterarMesFinanceiro(fator) {
             dataFiltroFinanceiro.setMonth(dataFiltroFinanceiro.getMonth() + fator);
