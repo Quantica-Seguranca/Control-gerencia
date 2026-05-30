@@ -192,6 +192,24 @@
         padding: 2px !important; /* Reduz o padding para ganhar espaço */
     }
 }
+@media print {
+    #area-impressao-pdf {
+        width: 100% !important;
+        overflow: visible !important;
+    }
+    .tabela-matriz {
+        width: 100% !important;
+        table-layout: fixed; /* Isso força as colunas a ajustarem-se ao espaço */
+    }
+    .posto-col {
+        width: 15% !important; /* Fixa o tamanho da coluna de nomes */
+    }
+    .tabela-matriz th, .tabela-matriz td {
+        font-size: 6px !important; /* Reduzimos um pouco mais para garantir */
+        padding: 1px !important;
+        word-wrap: break-word;
+    }
+}
     </style>
 </head>
 <body>
@@ -731,28 +749,33 @@
         function exportarMapaParaPDF() {
     const elemento = document.getElementById('area-impressao-pdf');
     const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
-    const nomeArquivo = `Matriz_Calor_${mesAnoTexto}.pdf`;
     
+    // Configuração para "encolher" o conteúdo para caber na folha
     const opcoes = {
-        margin: 5,
-        filename: nomeArquivo,
+        margin: [5, 5, 5, 5],
+        filename: `Matriz_Calor_${mesAnoTexto}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
             scale: 2, 
-            useCORS: true, 
-            logging: false, 
-            // O segredo está aqui: força a captura da largura total do elemento
-            windowWidth: document.getElementById('area-impressao-pdf').scrollWidth 
+            useCORS: true,
+            // A largura da janela é forçada para garantir que nada fique de fora
+            windowWidth: elemento.scrollWidth 
         },
         jsPDF: { 
             unit: 'mm', 
             format: 'a4', 
-            orientation: 'landscape' // Força a folha a ficar deitada
+            orientation: 'landscape',
+            compress: true
         }
     };
-    
-    html2pdf().set(opcoes).from(elemento).save();
+
+    // Usamos o html2pdf com uma pequena lógica de redimensionamento
+    html2pdf().set(opcoes).from(elemento).toPdf().get('pdf').then(function (pdf) {
+        // Opcional: Se ainda sair pequeno, o sistema já estará a usar a folha deitada
+        console.log("PDF gerado com sucesso.");
+    }).save();
 }
+
         function atualizarTextoMesAno() {
             const textoMesAno = dataFiltroAlvo.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
             document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
