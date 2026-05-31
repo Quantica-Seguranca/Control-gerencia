@@ -327,6 +327,7 @@
                         </div>
                         <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
                     </div>
+                    
 
                     <div class="heatmap-controles" data-html2pdf-ignore="true">
                         <button class="secondary" onclick="alterarMes(-1)">◀ Mês Anterior</button>
@@ -339,16 +340,38 @@
                             </table>
                     </div>
 
-                    <div class="heatmap-legenda">
+                 <div class="heatmap-legenda">
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-0)"></div> 0 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-1-3)"></div> 1 a 3 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-4-7)"></div> 4 a 7 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-8-12)"></div> 8 a 12 vis.</div>
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-13)"></div> 13+ vis.</div>
                     </div>
+                    
+                    <div style="margin-top: 35px; border-top: 2px solid #e2e8f0; padding-top: 25px;">
+                        <h3 style="margin: 0 0 5px 0; color: var(--primary);">🏆 Ranking: Top 20 Postos Mais Visitados</h3>
+                        <p style="font-size: 12px; color: #7f8c8d; margin: 0 0 15px 0;">Baseado no volume total de visitas acumuladas no mês selecionado.</p>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px; text-align: center;">Posição</th>
+                                    <th>Nome do Posto</th>
+                                    <th style="width: 130px; text-align: center;">Total de Visitas</th>
+                                    <th>Motivos / Observações Registradas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpo-ranking-postos">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #7f8c8d; padding: 20px;">Nenhum dado processado para este mês.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
                 </div>
             </div>
-        </section>
+        </section>   
 
         <section id="view-financeiro" class="view-secao">
             <div class="financeiro-grid-layout">
@@ -1189,10 +1212,106 @@ htmlTabela += '</tr></thead><tbody>';
                     }
                     htmlTabela += `</tr>`;
                 });
-            }
+         }
             htmlTabela += '</tbody>';
             tabela.innerHTML = htmlTabela;
+
+            // NOVO: Processamento e renderização do Ranking Top 20
+            renderizarRankingTop20(mapaVolumetria, anoAlvo, mesAlvo);
         }
+
+        // NOVO: Função auxiliar para processar e desenhar o ranking na tela
+        function renderizarRankingTop20(mapaVolumetria, anoAlvo, mesAlvo) {
+            const corpoRanking = document.getElementById('corpo-ranking-postos');
+            if (!corpoRanking) return;
+
+            // 1. Agrega os motivos mapeados por posto no mês corrente
+            const motivosPorPosto = {};
+            
+            // Coleta motivos de registros administrativos (visitantes_heatmap)
+            visitorsRegistrados.forEach(v => {
+                if (!v.data || !v.posto) return;
+                const partes = v.data.split('-');
+                if (partes.length === 3 && parseInt(partes[0], 10) === anoAlvo && (parseInt(partes[1], 10) - 1) === mesAlvo) {
+                    if (v.observacao && v.observacao.trim() !== "") {
+                        if (!motivosPorPosto[v.posto]) motivosPorPosto[v.posto] = [];
+                        motivosPorPosto[v.posto].push(v.observacao.trim());
+                    }
+                }
+            });
+
+            // Coleta observações/motivos das rondas operacionais
+            rondas.forEach(r => {
+                if (!r.data || !r.posto) return;
+                const dataReg = parseDataFlex(r.data);
+                if (dataReg && dataReg.ano === anoAlvo && dataReg.mes === mesAlvo) {
+                    // Caso seu app salve justificativas ou observações na ronda, mude o campo abaixo (ex: r.observacao ou r.motivo)
+                    const obsRonda = r.observacao || r.motivo || r.descricao;
+                    if (obsRonda && obsRonda.trim() !== "") {
+                        if (!motivosPorPosto[r.posto]) motivosPorPosto[r.posto] = [];
+                        motivosPorPosto[r.posto].push(obsRonda.trim());
+                    }
+                }
+            });
+
+            // 2. Transforma o objeto volumétrico em um Array ordenável
+            const listaRanking = [];
+            for (const postoNome in mapaVolumetria) {
+                let somaVisitasNoMes = 0;
+                for (const dia in mapaVolumetria[postoNome]) {
+                    somaVisitasNoMes += mapaVolumetria[postoNome][dia];
+                }
+
+                if (somaVisitasNoMes > 0) {
+                    // Filtra e remove duplicados de motivos do mesmo posto para exibição limpa
+                    const motivosUnicos = motivosPorPosto[postoNome] ? [...new Set(motivosPorPosto[postoNome])] : [];
+                    
+                    listaRanking.push({
+                        posto: postoNome,
+                        total: somaVisitasNoMes,
+                        motivos: motivosUnicos
+                    });
+                }
+            }
+
+            // 3. Ordena do maior para o menor volume de visitas e extrai os 20 primeiros
+            listaRanking.sort((a, b) => b.total - a.total);
+            const top20 = listaRanking.slice(0, 20);
+
+            // 4. Renderiza as linhas na tabela de ranking
+            if (top20.length === 0) {
+                corpoRanking.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #7f8c8d; padding: 20px;">Nenhum registro de visitas ou rondas para o período selecionado.</td></tr>`;
+                return;
+            }
+
+            let htmlRanking = "";
+            top20.forEach((item, index) => {
+                // Formata a lista de motivos como badges ou texto separado por vírgulas
+                let textoMotivos = `<span style="color:#94a3b8; font-style:italic;">Nenhuma observação informada.</span>`;
+                if (item.motivos.length > 0) {
+                    textoMotivos = item.motivos.map(m => `<span style="display:inline-block; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:4px; font-size:12px; margin: 2px;">${m}</span>`).join(" ");
+                }
+
+                // Destaca os 3 primeiros colocados com medalhas estilizadas
+                let medalha = `${index + 1}º`;
+                if (index === 0) medalha = "🥇 1º";
+                if (index === 1) medalha = "🥈 2º";
+                if (index === 2) medalha = "🥉 3º";
+
+                htmlRanking += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold; color: var(--primary);">${medalha}</td>
+                        <td style="font-weight: 600;">${item.posto}</td>
+                        <td style="text-align: center;">
+                            <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:12px; font-weight:bold;">${item.total}</span>
+                        </td>
+                        <td>${textoMotivos}</td>
+                    </tr>
+                `;
+            });
+
+            corpoRanking.innerHTML = htmlRanking;
+        }   
 
 
 
