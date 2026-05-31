@@ -109,7 +109,8 @@
     color: white;
     font-weight: bold;
 }
-/* Trava a primeira coluna (Nome do Posto) na tela ao dar scroll horizontal */
+
+/* REINSERIDO: Trava a primeira coluna (Nome do Posto) na tela ao dar scroll horizontal */
 .tabela-matriz th.posto-col, .tabela-matriz td.posto-col {
     position: sticky;
     left: 0;
@@ -121,11 +122,22 @@
     color: var(--primary);
     box-shadow: 2px 0 5px rgba(0,0,0,0.05);
 }
+
+/* Mantido: Correção para o checkbox não herdar a largura de 100% dos inputs globais */
+.posto-col input[type="checkbox"] {
+    width: auto !important;
+    margin-bottom: 0 !important;
+    margin-right: 8px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
 .tabela-matriz th.posto-col {
     background: var(--primary);
     color: white;
     z-index: 11;
 }
+
 /* Formato de quadrado para a célula do dia */
 /* AJUSTE PARA IMPRESSÃO DE PDF */
 @media print {
@@ -747,10 +759,23 @@
         }
 
         function exportarMapaParaPDF() {
+    const checkboxes = document.querySelectorAll('.chk-posto-impressao');
+    const linhasOcultadas = [];
+
+    // 1. Identifica e oculta temporariamente as linhas dos postos não selecionados
+    checkboxes.forEach(cb => {
+        if (!cb.checked) {
+            const linhaTr = cb.closest('tr');
+            if (linhaTr) {
+                linhaTr.style.display = 'none';
+                linhasOcultadas.push(linhaTr); // Guarda a referência para restaurar depois
+            }
+        }
+    });
+
     const elemento = document.getElementById('area-impressao-pdf');
     const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
     
-    // Configuração para "encolher" o conteúdo para caber na folha
     const opcoes = {
         margin: [5, 5, 5, 5],
         filename: `Matriz_Calor_${mesAnoTexto}.pdf`,
@@ -758,7 +783,6 @@
         html2canvas: { 
             scale: 2, 
             useCORS: true,
-            // A largura da janela é forçada para garantir que nada fique de fora
             windowWidth: elemento.scrollWidth 
         },
         jsPDF: { 
@@ -769,11 +793,16 @@
         }
     };
 
-    // Usamos o html2pdf com uma pequena lógica de redimensionamento
+    // 2. Executa a geração do PDF e restaura a visualização da tela original na sequência
     html2pdf().set(opcoes).from(elemento).toPdf().get('pdf').then(function (pdf) {
-        // Opcional: Se ainda sair pequeno, o sistema já estará a usar a folha deitada
         console.log("PDF gerado com sucesso.");
-    }).save();
+        // Restaura as linhas que haviam sido ocultadas
+        linhasOcultadas.forEach(tr => tr.style.display = '');
+    }).save().catch(err => {
+        console.error("Erro ao gerar PDF:", err);
+        // Garante a restauração mesmo em caso de erro na biblioteca
+        linhasOcultadas.forEach(tr => tr.style.display = '');
+    });
 }
 
         function atualizarTextoMesAno() {
@@ -825,11 +854,12 @@
             const mesAlvo = dataFiltroAlvo.getMonth();
             const totalDiasNoMes = new Date(anoAlvo, mesAlvo + 1, 0).getDate();
 
-            let htmlTabela = '<thead><tr><th class="posto-col">Posto \\ Dia</th>';
-            for (let d = 1; d <= totalDiasNoMes; d++) {
-                htmlTabela += `<th>${d}</th>`;
-            }
-            htmlTabela += '</tr></thead><tbody>';
+            // Alteração no Cabeçalho: Adicionando o checkbox de seleção global
+let htmlTabela = '<thead><tr><th class="posto-col"><input type="checkbox" id="selecionar-todos-impressao" checked onchange="alternarTodosCheckboxes(this)" data-html2pdf-ignore="true"> Posto \\ Dia</th>';
+for (let d = 1; d <= totalDiasNoMes; d++) {
+    htmlTabela += `<th>${d}</th>`;
+}
+htmlTabela += '</tr></thead><tbody>';
 
             const mapaVolumetria = {};
             postosParaExibir.forEach(p => mapaVolumetria[p.nome] = {});
@@ -856,7 +886,7 @@
                 htmlTabela += `<tr><td colspan="${totalDiasNoMes + 1}">Nenhum posto registrado ou encontrado na busca.</td></tr>`;
             } else {
                 postosParaExibir.forEach(p => {
-                    htmlTabela += `<tr><td class="posto-col" title="${p.nome}">${p.nome}</td>`;
+                    htmlTabela += `<tr><td class="posto-col" title="${p.nome}"><input type="checkbox" class="chk-posto-impressao" data-posto="${p.nome}" checked data-html2pdf-ignore="true" style="margin-right: 8px;">${p.nome}</td>`;
                     for (let d = 1; d <= totalDiasNoMes; d++) {
                         const totalVis = mapaVolumetria[p.nome][d] || 0;
                         let classeIntensidade = "intensidade-0";
@@ -1172,6 +1202,11 @@
                 </tr>`;
              });
         }
+
+        function alternarTodosCheckboxes(master) {
+    const checkboxes = document.querySelectorAll('.chk-posto-impressao');
+    checkboxes.forEach(cb => cb.checked = master.checked);
+}
 
         /* ----------------------------------------------------
            FUNÇÕES DE INTEGRAÇÃO DA NOVA VIEW COMBUSTÍVEL
