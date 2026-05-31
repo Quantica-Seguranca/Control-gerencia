@@ -211,15 +211,30 @@
     }
     .tabela-matriz {
         width: 100% !important;
-        table-layout: fixed; /* Isso força as colunas a ajustarem-se ao espaço */
+        table-layout: auto !important; /* Muda para auto para o navegador distribuir melhor */
+        border-spacing: 0 !important;
     }
-    .posto-col {
-        width: 15% !important; /* Fixa o tamanho da coluna de nomes */
+    /* Controla especificamente a coluna dos postos no PDF */
+    .tabela-matriz th.posto-col, .tabela-matriz td.posto-col {
+        width: 150px !important;      /* Define um tamanho fixo em pixels para o nome do posto */
+        max-width: 150px !important;
+        min-width: 150px !important;
+        white-space: normal !important; /* Permite que nomes longos quebrem linha se necessário */
+        word-break: break-all !important;
+        text-align: left !important;
+        padding: 2px 4px !important;
+    }
+    /* Controla as colunas dos dias para que fiquem uniformes */
+    .tabela-matriz th:not(.posto-col), .tabela-matriz td:not(.posto-col) {
+        width: auto !important;
+        padding: 2px 1px !important;
     }
     .tabela-matriz th, .tabela-matriz td {
-        font-size: 6px !important; /* Reduzimos um pouco mais para garantir */
-        padding: 1px !important;
-        word-wrap: break-word;
+        font-size: 7px !important;     /* Tamanho ideal para leitura em A4 Paisagem */
+    }
+    .celula-calor {
+        font-size: 7px !important;
+        line-height: 1 !important;
     }
 }
     </style>
