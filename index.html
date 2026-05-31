@@ -328,10 +328,29 @@
                         <button class="btn-pdf" data-html2pdf-ignore="true" onclick="exportarMapaParaPDF()">📄 Baixar PDF</button>
                     </div>
 
-                    <div class="heatmap-controles" data-html2pdf-ignore="true">
-                        <button class="secondary" onclick="alterarMes(-1)">◀ Mês Anterior</button>
-                        <div class="heatmap-mes-titulo" id="filtro-mes-ano-texto">Mês Corrente</div>
-                        <button class="secondary" onclick="alterarMes(1)">Próximo Mês ▶</button>
+                    <!-- Barra de Controles Inteligente de Período -->
+                    <div class="heatmap-controles" data-html2pdf-ignore="true" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="margin: 0; font-size: 13px; font-weight: bold; color: var(--secondary);">Filtrar por:</label>
+                            <select id="fin-modo-filtro" onchange="chavearModoFiltroFinanceiro()" style="margin-bottom: 0; width: 160px; padding: 8px;">
+                                <option value="mes">📅 Mês Fechado</option>
+                                <option value="periodo">📆 Entre Dias</option>
+                            </select>
+                        </div>
+
+                        <!-- Controles do Modo Mensal (Exibido por Padrão) -->
+                        <div id="fin-controles-mensal" style="display: flex; align-items: center; gap: 10px;">
+                            <button class="secondary" onclick="alterarMesFinanceiro(-1)" style="padding: 6px 12px;">◀ Mês Anterior</button>
+                            <div class="heatmap-mes-titulo" id="fin-mes-ano-texto" style="min-width: 120px; text-align: center;">Mês Corrente</div>
+                            <button class="secondary" onclick="alterarMesFinanceiro(1)" style="padding: 6px 12px;">Próximo Mês ▶</button>
+                        </div>
+
+                        <!-- Controles do Modo Período Personalizado (Oculto por Padrão) -->
+                        <div id="fin-controles-periodo" style="display: none; align-items: center; gap: 8px;">
+                            <input type="date" id="fin-filtro-data-inicio" onchange="renderizarFinanceiro()" style="margin-bottom:0; padding: 6px; width: 140px;">
+                            <span style="font-weight: bold; color: var(--secondary);">até</span>
+                            <input type="date" id="fin-filtro-data-fim" onchange="renderizarFinanceiro()" style="margin-bottom:0; padding: 6px; width: 140px;">
+                        </div>
                     </div>
 
                     <div class="tabela-matriz-container">
@@ -797,6 +816,29 @@
     </div>
 
     <script>
+        function chavearModoFiltroFinanceiro() {
+            const modo = document.getElementById('fin-modo-filtro').value;
+            const containerMensal = document.getElementById('fin-controles-mensal');
+            const containerPeriodo = document.getElementById('fin-controles-periodo');
+
+            if (modo === 'mes') {
+                containerMensal.style.display = 'flex';
+                containerPeriodo.style.display = 'none';
+            } else {
+                containerMensal.style.display = 'none';
+                containerPeriodo.style.display = 'flex';
+                
+                // Preenche automaticamente as datas com os extremos do mês corrente para facilitar a usabilidade
+                if (!document.getElementById('fin-filtro-data-inicio').value) {
+                    const primeiroDia = new Date(dataFiltroFinanceiro.getFullYear(), dataFiltroFinanceiro.getMonth(), 1);
+                    const ultimoDia = new Date(dataFiltroFinanceiro.getFullYear(), dataFiltroFinanceiro.getMonth() + 1, 0);
+                    
+                    document.getElementById('fin-filtro-data-inicio').value = primeiroDia.toISOString().split('T')[0];
+                    document.getElementById('fin-filtro-data-fim').value = ultimoDia.toISOString().split('T')[0];
+                }
+            }
+            renderizarFinanceiro();
+        }
         const firebaseConfig = {
             apiKey: "AIzaSyBL4Nka91iGIAWSTfvAmsqDHCj2KMhWZ70",
             authDomain: "sentinela-ops-profissional.firebaseapp.com",
@@ -1217,10 +1259,20 @@ htmlTabela += '</tr></thead><tbody>';
             
             registrosFinanceiros.forEach((r, index) => {
                 const partesData = r.data.split('-');
-                const anoReg = parseInt(partesData[0]);
-                const mesReg = parseInt(partesData[1]) - 1;
+                let exibirRegistro = false;
+
+                if (modoFiltro === 'mes') {
+                    const anoReg = parseInt(partesData[0], 10);
+                    const mesReg = parseInt(partesData[1], 10) - 1;
+                    exibirRegistro = (anoReg === anoAlvo && mesReg === mesAlvo);
+                } else if (modoFiltro === 'periodo') {
+                    const tRegistro = new Date(r.data + "T00:00:00").getTime();
+                    const bateInicio = tInicio ? (tRegistro >= tInicio) : true;
+                    const bateFim = tFim ? (tRegistro <= tFim) : true;
+                    exibirRegistro = (bateInicio && bateFim);
+                }
                 
-                if (anoReg === anoAlvo && mesReg === mesAlvo) {
+                if (exibirRegistro) {
                     totalHoras += parseInt(r.horas);
                     totalValor += parseFloat(r.valor);
                     perdasPorPosto[r.posto] = (perdasPorPosto[r.posto] || 0) + parseFloat(r.valor);
