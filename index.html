@@ -783,22 +783,63 @@
             const linhaTr = cb.closest('tr');
             if (linhaTr) {
                 linhaTr.style.display = 'none';
-                linhasOcultadas.push(linhaTr); // Guarda a referência para restaurar depois
+                linhasOcultadas.push(linhaTr);
             }
         }
     });
 
     const elemento = document.getElementById('area-impressao-pdf');
     const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
-    
+
+    // ESTILO INJETADO FORÇADO PARA O PDF FICAR PERFEITO
+    const estiloInjetado = `
+        <style>
+            #area-impressao-pdf { width: 100% !important; max-width: 100% !important; }
+            .tabela-matriz { 
+                width: 100% !important; 
+                table-layout: fixed !important; 
+                border-collapse: collapse !important;
+            }
+            /* Força a coluna dos postos a ocupar apenas 20% do espaço horizontal */
+            .tabela-matriz th.posto-col, .tabela-matriz td.posto-col {
+                width: 20% !important;
+                max-width: 20% !important;
+                min-width: 20% !important;
+                white-space: normal !important;
+                word-break: break-word !important;
+                font-size: 8px !important;
+                padding: 4px 2px !important;
+                position: static !important; /* Remove o sticky na impressão */
+            }
+            /* Distribui os 80% restantes igualmente entre os 31 dias */
+            .tabela-matriz th:not(.posto-col), .tabela-matriz td:not(.posto-col) {
+                width: calc(80% / 31) !important;
+                max-width: calc(80% / 31) !important;
+                min-width: calc(80% / 31) !important;
+                font-size: 7px !important;
+                padding: 4px 0 !important;
+            }
+            .celula-calor {
+                font-size: 7px !important;
+                width: 100% !important;
+                text-align: center !important;
+            }
+            .heatmap-legenda { margin-top: 15px !important; }
+        </style>
+    `;
+
+    // Criamos um clone temporário para injetar o estilo sem estragar a tela do usuário
+    const containerTemporario = document.createElement('div');
+    containerTemporario.innerHTML = estiloInjetado + elemento.innerHTML;
+
     const opcoes = {
-        margin: [5, 5, 5, 5],
+        margin: [8, 8, 8, 8],
         filename: `Matriz_Calor_${mesAnoTexto}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
             scale: 2, 
             useCORS: true,
-            windowWidth: elemento.scrollWidth 
+            logging: false
         },
         jsPDF: { 
             unit: 'mm', 
@@ -808,18 +849,16 @@
         }
     };
 
-    // 2. Executa a geração do PDF e restaura a visualização da tela original na sequência
-    html2pdf().set(opcoes).from(elemento).toPdf().get('pdf').then(function (pdf) {
+    // 2. Executa a geração usando o container com o estilo corrigido
+    html2pdf().set(opcoes).from(containerTemporario).toPdf().get('pdf').then(function (pdf) {
         console.log("PDF gerado com sucesso.");
-        // Restaura as linhas que haviam sido ocultadas
+        // Restaura as linhas da tela local
         linhasOcultadas.forEach(tr => tr.style.display = '');
     }).save().catch(err => {
         console.error("Erro ao gerar PDF:", err);
-        // Garante a restauração mesmo em caso de erro na biblioteca
         linhasOcultadas.forEach(tr => tr.style.display = '');
     });
 }
-
         function atualizarTextoMesAno() {
             const textoMesAno = dataFiltroAlvo.toLocaleDateString('pt-br', { month: 'long', year: 'numeric' });
             document.getElementById('filtro-mes-ano-texto').innerText = textoMesAno;
