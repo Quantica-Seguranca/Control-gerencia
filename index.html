@@ -1033,65 +1033,133 @@ let filtroDataCombustivel = new Date();
         function exportarMapaParaPDF() {
     const checkboxes = document.querySelectorAll('.chk-posto-impressao');
     const linhasOcultadas = [];
+    const postosSelecionadosParaMotivos = [];
 
-    // 1. Identifica e oculta temporariamente as linhas dos postos não selecionados
+    // 1. Identifica, oculta as linhas não marcadas e armazena os postos ativos
     checkboxes.forEach(cb => {
+        const postoNome = cb.getAttribute('data-posto');
         if (!cb.checked) {
             const linhaTr = cb.closest('tr');
             if (linhaTr) {
                 linhaTr.style.display = 'none';
                 linhasOcultadas.push(linhaTr);
             }
+        } else if (postoNome) {
+            // Guarda o nome do posto que está ativo no filtro de impressão
+            postosSelecionadosParaMotivos.push(postoNome);
         }
     });
 
     const elemento = document.getElementById('area-impressao-pdf');
     const mesAnoTexto = document.getElementById('filtro-mes-ano-texto').innerText.replace(' de ', '_');
+    
+    // 2. Coleta dinâmica dos motivos correspondentes ao período atual (Lógica espelhada do Top 20)
+    const anoAlvo = dataFiltroAlvo.getFullYear();
+    const mesAlvo = dataFiltroAlvo.getMonth();
+    const motivosPorPosto = {};
 
-    // ESTILO INJETADO FORÇADO PARA O PDF FICAR PERFEITO
+    // Captura os motivos administrativos
+    visitorsRegistrados.forEach(v => {
+        if (!v.data || !v.posto) return;
+        const partes = v.data.split('-');
+        if (partes.length === 3 && parseInt(partes[0], 10) === anoAlvo && (parseInt(partes[1], 10) - 1) === mesAlvo) {
+            if (v.observacao && v.observacao.trim() !== "") {
+                if (!motivosPorPosto[v.posto]) motivosPorPosto[v.posto] = [];
+                motivosPorPosto[v.posto].push(v.observacao.trim());
+            }
+        }
+    });
+
+    // Captura as observações das rondas operacionais
+    rondas.forEach(r => {
+        if (!r.data || !r.posto) return;
+        const dataReg = parseDataFlex(r.data);
+        if (dataReg && dataReg.ano === anoAlvo && dataReg.mes === mesAlvo) {
+            const obsRonda = r.observacao || r.motivo || r.descricao;
+            if (obsRonda && obsRonda.trim() !== "") {
+                if (!motivosPorPosto[r.posto]) motivosPorPosto[r.posto] = [];
+                motivosPorPosto[r.posto].push(obsRonda.trim());
+            }
+        }
+    });
+
+    // 3. Monta o bloco HTML da tabela de motivos para anexar abaixo do mapa no PDF
+    let htmlTabelaMotivos = `
+        <div style="margin-top: 30px; page-break-inside: avoid;">
+            <h3 style="color: #2c3e50; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">
+                📋 Histórico Descritivo de Observações e Motivos (Postos Selecionados)
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; font-family: 'Segoe UI', sans-serif;">
+                <thead>
+                    <tr style="background-color: #34495e; color: white;">
+                        <th style="padding: 6px; text-align: left; font-size: 10px; width: 30%;">Posto de Serviço</th>
+                        <th style="padding: 6px; text-align: left; font-size: 10px; width: 70%;">Motivos / Relatos Registrados no Mês</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    let temAlgumMotivo = false;
+
+    postosSelecionadosParaMotivos.forEach(postoNome => {
+        const listaMotivos = motivosPorPosto[postoNome] ? [...new Set(motivosPorPosto[postoNome])] : [];
+        
+        if (listaMotivos.length > 0) {
+            temAlgumMotivo = true;
+            const itensLista = listaMotivos.map(m => `<div style="margin-bottom: 4px; font-size: 9px; color: #475569;">• ${m}</div>`).join('');
+            htmlTabelaMotivos += `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 6px; font-weight: bold; font-size: 10px; color: #2c3e50; vertical-align: top;">${postoNome}</td>
+                    <td style="padding: 6px; vertical-align: top;">${itensLista}</td>
+                </tr>
+            `;
+        }
+    });
+
+    if (!temAlgumMotivo) {
+        htmlTabelaMotivos += `
+            <tr>
+                <td colspan="2" style="padding: 10px; text-align: center; font-style: italic; color: #7f8c8d; font-size: 10px;">
+                    Nenhuma observação ou justificativa registrada para os postos impressos neste mês.
+                </td>
+            </tr>
+        `;
+    }
+
+    htmlTabelaMotivos += `</tbody></table></div>`;
+
+    // 4. ESTILO INJETADO ATUALIZADO (Mantém o Mapa compacto e estiliza os motivos)
     const estiloInjetado = `
         <style>
             #area-impressao-pdf { width: 100% !important; max-width: 100% !important; }
-            .tabela-matriz { 
-                width: 100% !important; 
-                table-layout: fixed !important; 
-                border-collapse: collapse !important;
-            }
-            /* Força a coluna dos postos a ocupar apenas 20% do espaço horizontal */
+            .tabela-matriz { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
             .tabela-matriz th.posto-col, .tabela-matriz td.posto-col {
-                width: 20% !important;
-                max-width: 20% !important;
-                min-width: 20% !important;
-                white-space: normal !important;
-                word-break: break-word !important;
-                font-size: 8px !important;
-                padding: 4px 2px !important;
-                position: static !important; /* Remove o sticky na impressão */
+                width: 20% !important; max-width: 20% !important; min-width: 20% !important;
+                white-space: normal !important; word-break: break-word !important;
+                font-size: 8px !important; padding: 4px 2px !important; position: static !important;
             }
-            /* Distribui os 80% restantes igualmente entre os 31 dias */
             .tabela-matriz th:not(.posto-col), .tabela-matriz td:not(.posto-col) {
-                width: calc(80% / 31) !important;
-                max-width: calc(80% / 31) !important;
-                min-width: calc(80% / 31) !important;
-                font-size: 7px !important;
-                padding: 4px 0 !important;
+                width: calc(80% / 31) !important; max-width: calc(80% / 31) !important; min-width: calc(80% / 31) !important;
+                font-size: 7px !important; padding: 4px 0 !important;
             }
-            .celula-calor {
-                font-size: 7px !important;
-                width: 100% !important;
-                text-align: center !important;
-            }
+            .celula-calor { font-size: 7px !important; width: 100% !important; text-align: center !important; }
             .heatmap-legenda { margin-top: 15px !important; }
         </style>
     `;
 
-    // Criamos um clone temporário para injetar o estilo sem estragar a tela do usuário
+    // 5. Cria o container temporário unindo o Mapa de calor + Nova Tabela de Motivos
     const containerTemporario = document.createElement('div');
-    containerTemporario.innerHTML = estiloInjetado + elemento.innerHTML;
+    containerTemporario.innerHTML = estiloInjetado + elemento.innerHTML + htmlTabelaMotivos;
+
+    // Remove o bloco do ranking do container temporário para ele não sair duplicado embaixo da nova tabela organizada
+    const rankingDuplicado = containerTemporario.querySelector('#corpo-ranking-postos')?.closest('div');
+    if (rankingDuplicado) {
+        rankingDuplicado.remove();
+    }
 
     const opcoes = {
-        margin: [8, 8, 8, 8],
-        filename: `Matriz_Calor_${mesAnoTexto}.pdf`,
+        margin: [10, 10, 10, 10],
+        filename: `Matriz_Calor_Descritiva_${mesAnoTexto}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
             scale: 2, 
@@ -1106,10 +1174,9 @@ let filtroDataCombustivel = new Date();
         }
     };
 
-    // 2. Executa a geração usando o container com o estilo corrigido
+    // 6. Executa a geração do PDF completo
     html2pdf().set(opcoes).from(containerTemporario).toPdf().get('pdf').then(function (pdf) {
-        console.log("PDF gerado com sucesso.");
-        // Restaura as linhas da tela local
+        console.log("PDF descritivo gerado com sucesso.");
         linhasOcultadas.forEach(tr => tr.style.display = '');
     }).save().catch(err => {
         console.error("Erro ao gerar PDF:", err);
