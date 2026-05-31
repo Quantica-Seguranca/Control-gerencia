@@ -842,23 +842,42 @@ let gRankingConsumo = null;
 let subModuloAtivo = 'abastecimentos';
 let filtroDataCombustivel = new Date();
 
+        // GATEWAY DE ACESSO EXCLUSIVO - ADMIN, GERÊNCIA E ANALISTA
         auth.onAuthStateChanged(async user => {
             if (user) {
                 const doc = await fs.collection("usuarios").doc(user.uid).get();
                 const userEmail = user.email ? user.email.toLowerCase() : "";
                 
-                if ((doc.exists && (doc.data().role === "admin" || doc.data().role === "gerencia")) || 
-                    ["admin@sentinela.com", "gerencia@sentinela.com"].includes(userEmail)) {
-                    usuarioLogadoPermissao = "admin";
+                // 1. Definição estrita de quem possui direito de acesso à Gerência
+                const possuiAcessoGerencial = 
+                    (doc.exists && (doc.data().role === "admin" || doc.data().role === "gerencia" || doc.data().role === "analista")) || 
+                    ["admin@sentinela.com", "gerencia@sentinela.com", "analista@sentinela.com"].includes(userEmail);
+
+                if (possuiAcessoGerencial) {
+                    // Mapeia se o nível de privilégio permite alterações de infraestrutura (Admin/Gerente) ou Auditoria (Analista)
+                    if (userEmail === "analista@sentinela.com" || (doc.exists && doc.data().role === "analista")) {
+                        usuarioLogadoPermissao = "analista";
+                        document.getElementById('btn-menu-admin').style.display = 'none';
+                    } else {
+                        usuarioLogadoPermissao = "admin";
+                        document.getElementById('btn-menu-admin').style.display = 'block';
+                    }
+
+                    // Liberação do Sistema de Gerência
+                    document.getElementById('secao-login').style.display = 'none';
+                    document.getElementById('nav-lateral').style.display = 'flex';
+                    document.getElementById('conteudo-painel').style.display = 'block';
+                    
+                    // Inicialização dos Ouvintes de Dados e do Novo Módulo Combustível
+                    ouvirDados();
+                    inicializarEscutasCombustivel();
                 } else {
-                    usuarioLogadoPermissao = "leitor";
+                    // 2. TRANCA DE SEGURANÇA: Se for operador comum, expulsa e limpa a sessão
+                    alert("⚠️ Acesso Negado: Este painel é restrito exclusivamente para Administradores, Gerentes e Analistas da Quântica.");
+                    auth.signOut();
                 }
-                
-                document.getElementById('secao-login').style.display = 'none';
-                document.getElementById('nav-lateral').style.display = 'flex';
-                document.getElementById('conteudo-painel').style.display = 'block';
-                ouvirDados();
             } else {
+                // Painel trancado e limpo para deslogados
                 document.getElementById('secao-login').style.display = 'flex';
                 document.getElementById('nav-lateral').style.display = 'none';
                 document.getElementById('conteudo-painel').style.display = 'none';
