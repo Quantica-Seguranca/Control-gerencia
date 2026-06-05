@@ -176,7 +176,12 @@
         .grafico-financeiro-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
         /* Estilos Adicionados para a Nova View Administrativa */
-        .admin-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; align-items: flex-start; }
+        .admin-grid-layout { 
+            display: grid;
+            grid-template-columns: minmax(380px, 1fr) 2fr; /* AJUSTADO: Alarga o formulário proporcionalmente à tela */
+            gap: 25px; 
+            align-items: flex-start; 
+        }1
         .form-admin-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .form-admin-box h3 { margin-top: 0; margin-bottom: 15px; color: var(--primary); font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .form-admin-box label { font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px; }
@@ -864,17 +869,91 @@
                         </label>
 
                         <div id="bloco-modulos-gerencia" style="display: none; border-top: 1px solid #cbd5e1; padding-top: 10px; margin-top: 10px;">
-                            <label style="color: var(--secondary); font-size: 11px; margin-bottom: 8px;">SELECIONE AS VIEWS PERMITIDAS:</label>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="postos" style="width:auto; margin:0;"> Postos</label>
-                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="calor" style="width:auto; margin:0;"> Mapa de Calor</label>
-                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="financeiro" style="width:auto; margin:0;"> Financeiro</label>
-                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="combustivel" style="width:auto; margin:0;"> Combustível</label>
-                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="administracao" style="width:auto; margin:0;"> Adm. Corporativa</label>
-                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:bold; color:var(--danger);"><input type="checkbox" class="chk-mod" value="usuarios" style="width:auto; margin:0;"> Utilizadores</label>
+                            <label style="color: var(--secondary); font-size: 11px; margin-bottom: 8px; display: block;">MATRIZ DE PERMISSÕES POR MÓDULO:</label>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 6px; background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 60px 70px; gap: 10px; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 4px; text-align: center;">
+                                    <span style="font-size: 11px; font-weight: bold; color: var(--secondary); text-align: left;">MÓDULO</span>
+                                    <span style="font-size: 11px; font-weight: bold; color: var(--secondary);">VER</span>
+                                    <span style="font-size: 11px; font-weight: bold; color: var(--secondary);">GRAVAR</span>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 60px 70px; gap: 10px; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">🏢 Postos</span>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-ver" value="postos" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-gravar" value="postos" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 60px 70px; gap: 10px; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">🔥 Mapa de Calor</span>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-ver" value="calor" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-gravar" value="calor" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 60px 70px; gap: 10px; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">💰 Financeiro</span>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-ver" value="financeiro" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-gravar" value="financeiro" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 60px 70px; gap: 10px; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">⛽ Combustível</span>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-ver" value="combustivel" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-gravar" value="combustivel" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 60px 70px; gap: 10px; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">👑 Adm. Corporativa</span>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-ver" value="administracao" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-gravar" value="administracao" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 60px 70px; gap: 10px; align-items: center;">
+                                    <span style="font-size: 13px; font-weight: bold; color: var(--danger);">👥 Utilizadores</span>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-ver" value="usuarios" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                    <label style="margin:0; text-align:center;"><input type="checkbox" class="abac-gravar" value="usuarios" style="width:auto; margin:0; vertical-align:middle; cursor:pointer;"></label>
+                                </div>
+
                             </div>
                         </div>
-                    </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">🔥 Mapa de Calor</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-ver" value="calor" style="width:auto; margin:0; vertical-align:middle;"> Ver</label>
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-gravar" value="calor" style="width:auto; margin:0; vertical-align:middle;"> Gravar</label>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">💰 Financeiro</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-ver" value="financeiro" style="width:auto; margin:0; vertical-align:middle;"> Ver</label>
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-gravar" value="financeiro" style="width:auto; margin:0; vertical-align:middle;"> Gravar</label>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">⛽ Combustível</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-ver" value="combustivel" style="width:auto; margin:0; vertical-align:middle;"> Ver</label>
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-gravar" value="combustivel" style="width:auto; margin:0; vertical-align:middle;"> Gravar</label>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #475569;">👑 Adm. Corporativa</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-ver" value="administracao" style="width:auto; margin:0; vertical-align:middle;"> Ver</label>
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-gravar" value="administracao" style="width:auto; margin:0; vertical-align:middle;"> Gravar</label>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 13px; font-weight: bold; color: var(--danger);">👥 Utilizadores</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-ver" value="usuarios" style="width:auto; margin:0; vertical-align:middle;"> Ver</label>
+                                        <label style="font-size:12px; margin:0;"><input type="checkbox" class="abac-gravar" value="usuarios" style="width:auto; margin:0; vertical-align:middle;"> Gravar</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     <label>Status da Conta</label>
                     <select id="usu-input-status">
@@ -938,12 +1017,21 @@ let paginaAtualPosto = 1;
 const registrosPorPagina = 10;
 
 // ADICIONADO: Controle da página atual do módulo Administrativo
-let paginaAtualAdmin = 1; 
-
+let paginaAtualAdmin = 1;
 let postosFiltrados = [];
 let usuarioLogadoPermissao = "leitor";
-let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro'));
 
+// ADICIONADO: Objeto central que guarda o que o usuário logado pode ALTERAR
+let direitosEscritaUsuario = {
+    postos: false,
+    calor: false,
+    financeiro: false,
+    combustivel: false,
+    administracao: false,
+    usuarios: false
+};
+
+let registrosFinanceiros = JSON.parse(localStorage.getItem('sentinela_financeiro'));
         /* VARIÁVEIS DO ECOSSISTEMA COMPLETO DE COMBUSTÍVEL */
 let localViaturas = [];
 let localCartoes = [];
@@ -970,9 +1058,8 @@ let filtroDataCombustivel = new Date();
                     (doc.exists && (doc.data().role === "admin" || doc.data().role === "gerencia" || doc.data().role === "analista")) || 
                     ["admin@sentinela.com", "gerencia@sentinela.com", "analista@sentinela.com"].includes(userEmail);
 
-                if (possuiAcessoGerencial) {
-                    // Mapeia se o nível de privilégio permite alterações de infraestrutura (Admin/Gerente) ou Auditoria (Analista)
-                    if (possuiAcessoGerencial && doc.data()?.status !== "bloqueado") {
+                // 2. Valida se tem permissão E não está bloqueado
+                if (possuiAcessoGerencial && doc.data()?.status !== "bloqueado") {
                     
                     if (userEmail === "analista@sentinela.com" || (doc.exists && doc.data().role === "analista")) {
                         usuarioLogadoPermissao = "analista";
@@ -980,9 +1067,22 @@ let filtroDataCombustivel = new Date();
                         usuarioLogadoPermissao = "admin";
                     }
 
-                    // LÓGICA ABAC: Controlar os Botões do Menu Lateral
-                    // Se não tiver configurações guardadas (utilizador antigo), assume acesso total
-                    const acessos = doc.exists && doc.data().acessos ? doc.data().acessos : { gerencia: true, modulos: ['postos', 'calor', 'financeiro', 'administracao', 'combustivel', 'usuarios'] };
+                    // Reseta os direitos de escrita para falso a cada novo login (Segurança)
+                    Object.keys(direitosEscritaUsuario).forEach(k => direitosEscritaUsuario[k] = false);
+
+                    // MATRIZ AVANÇADA: Carrega as configurações de VER e GRAVAR do banco
+                    const acessos = doc.exists && doc.data().acessos ? doc.data().acessos : { 
+                        gerencia: true, 
+                        modulos_ver: ['postos', 'calor', 'financeiro', 'administracao', 'combustivel', 'usuarios'],
+                        modulos_gravar: ['postos', 'calor', 'financeiro', 'administracao', 'combustivel', 'usuarios']
+                    };
+                    
+                    // Preenche o gerenciador com os módulos de escrita autorizados (vão virar TRUE)
+                    if (acessos.modulos_gravar && Array.isArray(acessos.modulos_gravar)) {
+                        acessos.modulos_gravar.forEach(mod => { 
+                            direitosEscritaUsuario[mod] = true; 
+                        });
+                    }
                     
                     // Oculta todos os botões primeiro (exceto o Sair)
                     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -991,9 +1091,9 @@ let filtroDataCombustivel = new Date();
 
                     let primeiroModuloDisponivel = null;
                     
-                    // Revela estritamente as views permitidas
-                    if (acessos.modulos && Array.isArray(acessos.modulos)) {
-                        acessos.modulos.forEach(mod => {
+                    // Revela estritamente as views permitidas no array de visualização (modulos_ver)
+                    if (acessos.modulos_ver && Array.isArray(acessos.modulos_ver)) {
+                        acessos.modulos_ver.forEach(mod => {
                             const btnMenu = document.querySelector(`.nav-btn[onclick*="${mod}"]`);
                             if (btnMenu) {
                                 btnMenu.style.display = 'block';
@@ -1003,8 +1103,9 @@ let filtroDataCombustivel = new Date();
                     }
 
                     // Prevenção de bloqueio acidental do dono (admin)
-                    if(usuarioLogadoPermissao === "admin" && (!acessos.modulos || acessos.modulos.length === 0)) {
+                    if(usuarioLogadoPermissao === "admin" && (!acessos.modulos_ver || acessos.modulos_ver.length === 0)) {
                          document.querySelectorAll('.nav-btn').forEach(b => b.style.display = 'block');
+                         Object.keys(direitosEscritaUsuario).forEach(k => direitosEscritaUsuario[k] = true);
                          primeiroModuloDisponivel = 'postos';
                     }
 
@@ -1017,7 +1118,7 @@ let filtroDataCombustivel = new Date();
                     if (primeiroModuloDisponivel) {
                         alternarVisao(primeiroModuloDisponivel);
                     } else {
-                        alert("Sua conta tem acesso, mas nenhum módulo foi liberado. Fale com a Administração.");
+                        alert("Sua conta tem acesso, mas nenhum módulo visual foi liberado.");
                         fazerLogout();
                         return;
                     }
@@ -1025,12 +1126,12 @@ let filtroDataCombustivel = new Date();
                     ouvirDados();
                     inicializarEscutasCombustivel();
 
-                } else if (doc.data()?.status === "bloqueado") {
+                } else if (doc.exists && doc.data()?.status === "bloqueado") {
                     alert("⚠️ Acesso Negado: Esta conta encontra-se suspensa.");
                     auth.signOut();
                 } else {
-                    // 2. TRANCA DE SEGURANÇA: Se for operador comum, expulsa e limpa a sessão
-                    alert("⚠️ Acesso Negado: Este painel é restrito exclusivamente para Administradores, Gerentes e Analistas da Quântica.");
+                    // TRANCA DE SEGURANÇA: Se for operador comum, expulsa e limpa a sessão
+                    alert("⚠️ Acesso Negado: Este painel é restrito exclusivamente para Administradores, Gerentes e Analistas.");
                     auth.signOut();
                 }
             } else {
@@ -1040,7 +1141,6 @@ let filtroDataCombustivel = new Date();
                 document.getElementById('conteudo-painel').style.display = 'none';
             }
         });
-
         function fazerLogin() {
     auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value)
         .catch(() => {
@@ -2615,13 +2715,19 @@ function mudarPaginaAdmin(direcao) {
             document.getElementById('usu-input-role').value = u.role || "operador";
             document.getElementById('usu-input-status').value = u.status || "ativo";
             
-            // Leitura do ABAC e preenchimento dos Checkboxes
-            const acessos = u.acessos || { gerencia: false, modulos: [] };
+            // Leitura ABAC Avançada
+            const acessos = u.acessos || { gerencia: false, modulos_ver: [], modulos_gravar: [] };
             document.getElementById('usu-chk-gerencia').checked = acessos.gerencia;
             
-            document.querySelectorAll('.chk-mod').forEach(chk => {
-                chk.checked = acessos.modulos.includes(chk.value);
+            // Marca os checkboxes de Visualização
+            document.querySelectorAll('.abac-ver').forEach(chk => {
+                chk.checked = (acessos.modulos_ver || []).includes(chk.value);
             });
+            // Marca os checkboxes de Gravação
+            document.querySelectorAll('.abac-gravar').forEach(chk => {
+                chk.checked = (acessos.modulos_gravar || []).includes(chk.value);
+            });
+            
             toggleModulosGerencia();
 
             document.getElementById('usu-btn-salvar').disabled = false;
@@ -2631,12 +2737,14 @@ function mudarPaginaAdmin(direcao) {
 
         async function salvarPrivilegiosUsuario() {
             if (usuarioLogadoPermissao !== "admin") return;
-
             const id = document.getElementById('usu-input-id').value;
             if (!id) return;
 
-            const modulosSelecionados = [];
-            document.querySelectorAll('.chk-mod:checked').forEach(chk => modulosSelecionados.push(chk.value));
+            const verSelecionados = [];
+            document.querySelectorAll('.abac-ver:checked').forEach(chk => verSelecionados.push(chk.value));
+
+            const gravarSelecionados = [];
+            document.querySelectorAll('.abac-gravar:checked').forEach(chk => gravarSelecionados.push(chk.value));
 
             const payload = {
                 nome: document.getElementById('usu-input-nome').value,
@@ -2645,16 +2753,17 @@ function mudarPaginaAdmin(direcao) {
                 status: document.getElementById('usu-input-status').value,
                 acessos: {
                     gerencia: document.getElementById('usu-chk-gerencia').checked,
-                    modulos: modulosSelecionados
+                    modulos_ver: verSelecionados,
+                    modulos_gravar: gravarSelecionados
                 }
             };
 
             try {
                 await fs.collection('usuarios').doc(id).update(payload);
-                alert("Privilégios guardados com sucesso!");
+                alert("Privilégios aplicados com sucesso!");
                 limparFormularioUsuario();
             } catch (e) {
-                alert("Falha de segurança: Sem permissões no servidor para alterar isto.");
+                alert("Falha de segurança ao salvar dados.");
             }
         }
 
@@ -2667,7 +2776,7 @@ function mudarPaginaAdmin(direcao) {
             document.getElementById('usu-input-status').value = "ativo";
             
             document.getElementById('usu-chk-gerencia').checked = false;
-            document.querySelectorAll('.chk-mod').forEach(chk => chk.checked = false);
+            document.querySelectorAll('.abac-ver, .abac-gravar').forEach(chk => chk.checked = false);
             toggleModulosGerencia();
             
             document.getElementById('usu-btn-salvar').disabled = true;
