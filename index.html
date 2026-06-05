@@ -278,6 +278,9 @@
         <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
         <button class="nav-btn" id="btn-menu-admin" onclick="alternarVisao('administracao')">👑 Administração</button>
         <button class="nav-btn" id="btn-menu-combustivel" onclick="alternarVisao('combustivel')">⛽ Combustível</button>
+        
+        <button class="nav-btn" id="btn-menu-usuarios" onclick="alternarVisao('usuarios')">👥 Utilizadores</button>
+        
         <button class="nav-btn btn-logout" onclick="fazerLogout()">Sair</button>
     </nav>
 
@@ -829,6 +832,84 @@
                 </div>
             </div>
         </section>
+        
+        <section id="view-usuarios" class="view-secao">
+            <div class="admin-grid-layout">
+                <div class="form-admin-box">
+                    <h3 id="usu-titulo-formulario">Gestão de Privilégios (RBAC + ABAC)</h3>
+                    <input type="hidden" id="usu-input-id" value="">
+                    
+                    <label>E-mail da Conta (Leitura)</label>
+                    <input type="text" id="usu-input-email" readonly style="background: #f8fafc; color: #94a3b8;">
+                    
+                    <label>Nome do Colaborador</label>
+                    <input type="text" id="usu-input-nome" placeholder="Ex: João Silva">
+                    
+                    <label>Cargo / Função</label>
+                    <input type="text" id="usu-input-cargo" placeholder="Ex: Supervisor de Área">
+                    
+                    <label>Nível Corporativo (Role) *</label>
+                    <select id="usu-input-role">
+                        <option value="operador">Operador (Acesso restrito ao App Móvel)</option>
+                        <option value="analista">Analista (Gerência - Apenas Leitura)</option>
+                        <option value="gerencia">Gerência (Operação completa da Gerência)</option>
+                        <option value="admin">Administrador (Controlo Total)</option>
+                    </select>
+
+                    <label style="margin-top: 15px; color: var(--accent);">Liberação de Módulos na Gerência</label>
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                        <label style="margin: 0 0 10px 0; display:flex; align-items:center; gap:5px; cursor:pointer; color: var(--primary); font-weight: bold;">
+                            <input type="checkbox" id="usu-chk-gerencia" style="width: auto; margin:0;" onchange="toggleModulosGerencia()"> 
+                            Tem acesso ao Painel de Gerência?
+                        </label>
+
+                        <div id="bloco-modulos-gerencia" style="display: none; border-top: 1px solid #cbd5e1; padding-top: 10px; margin-top: 10px;">
+                            <label style="color: var(--secondary); font-size: 11px; margin-bottom: 8px;">SELECIONE AS VIEWS PERMITIDAS:</label>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="postos" style="width:auto; margin:0;"> Postos</label>
+                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="calor" style="width:auto; margin:0;"> Mapa de Calor</label>
+                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="financeiro" style="width:auto; margin:0;"> Financeiro</label>
+                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="combustivel" style="width:auto; margin:0;"> Combustível</label>
+                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:normal; color:#475569;"><input type="checkbox" class="chk-mod" value="administracao" style="width:auto; margin:0;"> Adm. Corporativa</label>
+                                <label style="margin: 0; display:flex; align-items:center; gap:5px; font-weight:bold; color:var(--danger);"><input type="checkbox" class="chk-mod" value="usuarios" style="width:auto; margin:0;"> Utilizadores</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label>Status da Conta</label>
+                    <select id="usu-input-status">
+                        <option value="ativo">🟢 Ativo (Permitir Acesso)</option>
+                        <option value="bloqueado">🔴 Bloqueado (Acesso Suspenso)</option>
+                    </select>
+
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+                        <button class="primary" id="usu-btn-salvar" onclick="salvarPrivilegiosUsuario()" disabled>Salvar Alterações</button>
+                        <button class="secondary" style="display:none; width:100%;" id="usu-btn-cancelar" onclick="limparFormularioUsuario()">Cancelar Edição</button>
+                    </div>
+                </div>
+
+                <div class="admin-painel-tabela">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2 style="margin:0; color:var(--primary); font-size:18px;">Contas e Acessos Registados</h2>
+                        <input type="text" id="busca-usuarios" placeholder="🔍 Buscar por nome ou email..." oninput="renderizarTabelaUsuarios()" style="max-width: 300px; margin-bottom:0;">
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Colaborador</th>
+                                <th>E-mail</th>
+                                <th>Nível (Role)</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpo-tabela-usuarios">
+                            <tr><td colspan="5" style="text-align:center; color:#7f8c8d;">A carregar dados de acesso...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -891,22 +972,62 @@ let filtroDataCombustivel = new Date();
 
                 if (possuiAcessoGerencial) {
                     // Mapeia se o nível de privilégio permite alterações de infraestrutura (Admin/Gerente) ou Auditoria (Analista)
+                    if (possuiAcessoGerencial && doc.data()?.status !== "bloqueado") {
+                    
                     if (userEmail === "analista@sentinela.com" || (doc.exists && doc.data().role === "analista")) {
                         usuarioLogadoPermissao = "analista";
-                        document.getElementById('btn-menu-admin').style.display = 'none';
                     } else {
                         usuarioLogadoPermissao = "admin";
-                        document.getElementById('btn-menu-admin').style.display = 'block';
                     }
 
-                    // Liberação do Sistema de Gerência
+                    // LÓGICA ABAC: Controlar os Botões do Menu Lateral
+                    // Se não tiver configurações guardadas (utilizador antigo), assume acesso total
+                    const acessos = doc.exists && doc.data().acessos ? doc.data().acessos : { gerencia: true, modulos: ['postos', 'calor', 'financeiro', 'administracao', 'combustivel', 'usuarios'] };
+                    
+                    // Oculta todos os botões primeiro (exceto o Sair)
+                    document.querySelectorAll('.nav-btn').forEach(btn => {
+                        if (!btn.classList.contains('btn-logout')) btn.style.display = 'none';
+                    });
+
+                    let primeiroModuloDisponivel = null;
+                    
+                    // Revela estritamente as views permitidas
+                    if (acessos.modulos && Array.isArray(acessos.modulos)) {
+                        acessos.modulos.forEach(mod => {
+                            const btnMenu = document.querySelector(`.nav-btn[onclick*="${mod}"]`);
+                            if (btnMenu) {
+                                btnMenu.style.display = 'block';
+                                if (!primeiroModuloDisponivel) primeiroModuloDisponivel = mod;
+                            }
+                        });
+                    }
+
+                    // Prevenção de bloqueio acidental do dono (admin)
+                    if(usuarioLogadoPermissao === "admin" && (!acessos.modulos || acessos.modulos.length === 0)) {
+                         document.querySelectorAll('.nav-btn').forEach(b => b.style.display = 'block');
+                         primeiroModuloDisponivel = 'postos';
+                    }
+
+                    // Liberação Visual
                     document.getElementById('secao-login').style.display = 'none';
                     document.getElementById('nav-lateral').style.display = 'flex';
                     document.getElementById('conteudo-painel').style.display = 'block';
                     
-                    // Inicialização dos Ouvintes de Dados e do Novo Módulo Combustível
+                    // Redirecionamento Inteligente para o 1º módulo liberado
+                    if (primeiroModuloDisponivel) {
+                        alternarVisao(primeiroModuloDisponivel);
+                    } else {
+                        alert("Sua conta tem acesso, mas nenhum módulo foi liberado. Fale com a Administração.");
+                        fazerLogout();
+                        return;
+                    }
+
                     ouvirDados();
                     inicializarEscutasCombustivel();
+
+                } else if (doc.data()?.status === "bloqueado") {
+                    alert("⚠️ Acesso Negado: Esta conta encontra-se suspensa.");
+                    auth.signOut();
                 } else {
                     // 2. TRANCA DE SEGURANÇA: Se for operador comum, expulsa e limpa a sessão
                     alert("⚠️ Acesso Negado: Este painel é restrito exclusivamente para Administradores, Gerentes e Analistas da Quântica.");
@@ -977,6 +1098,7 @@ function recuperarSenhaGerencia() {
             let tituloAba = id.toUpperCase();
             if(id === 'administracao') tituloAba = 'ADMINISTRAÇÃO CORPORATIVA';
             if(id === 'combustivel') tituloAba = 'CONTROLE DE COMBUSTÍVEL';
+            if(id === 'usuarios') tituloAba = 'GESTÃO DE ACESSOS E PRIVILÉGIOS'; // ADICIONADO
             document.getElementById('titulo-aba').innerText = tituloAba;
             
             if(id === 'financeiro') {
@@ -2418,6 +2540,139 @@ function mudarPaginaAdmin(direcao) {
             document.body.appendChild(linkTemporario);
             linkTemporario.click();
             document.body.removeChild(linkTemporario);
+        }
+        /* ==========================================
+           MÓDULO: GESTÃO DE UTILIZADORES (RBAC + ABAC)
+        ========================================== */
+        let listaUsuariosGeral = [];
+
+        auth.onAuthStateChanged(user => {
+            if (user && (usuarioLogadoPermissao === "admin" || usuarioLogadoPermissao === "gerencia")) {
+                fs.collection('usuarios').onSnapshot(snap => {
+                    listaUsuariosGeral = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    renderizarTabelaUsuarios();
+                });
+            }
+        });
+
+        function renderizarTabelaUsuarios() {
+            const corpo = document.getElementById('corpo-tabela-usuarios');
+            if(!corpo) return;
+            
+            const termo = (document.getElementById('busca-usuarios')?.value || "").toLowerCase();
+            corpo.innerHTML = "";
+
+            const filtrados = listaUsuariosGeral.filter(u => {
+                const nome = (u.nome || "").toLowerCase();
+                const email = (u.email || u.id || "").toLowerCase();
+                return nome.includes(termo) || email.includes(termo);
+            });
+
+            if (filtrados.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#7f8c8d;">Nenhuma conta encontrada.</td></tr>`;
+                return;
+            }
+
+            filtrados.forEach(u => {
+                let roleBadge = `<span style="background:#e2e8f0; color:#475569; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Operador</span>`;
+                if(u.role === 'admin') roleBadge = `<span style="background:#fef08a; color:#854d0e; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Administrador</span>`;
+                if(u.role === 'gerencia') roleBadge = `<span style="background:#dbeafe; color:#1e40af; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Gerência</span>`;
+                if(u.role === 'analista') roleBadge = `<span style="background:#f3e8ff; color:#6b21a8; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">Analista</span>`;
+
+                const statusBadge = u.status === 'bloqueado' 
+                    ? `<span style="color:var(--danger); font-weight:bold; font-size: 12px;">🔴 Bloqueado</span>` 
+                    : `<span style="color:var(--success); font-weight:bold; font-size: 12px;">🟢 Ativo</span>`;
+
+                const btnEditar = usuarioLogadoPermissao === "admin" 
+                    ? `<button class="btn-acao btn-editar" onclick="carregarEdicaoUsuario('${u.id}')">Gerir Acesso</button>`
+                    : `<span style="font-size:11px; color:#94a3b8; font-style:italic;">Acesso Restrito</span>`;
+
+                corpo.innerHTML += `<tr>
+                    <td style="font-weight:600;">${u.nome || '-'} <br><small style="color:#94a3b8; font-weight:normal;">${u.cargo || ''}</small></td>
+                    <td><small>${u.email || u.id}</small></td>
+                    <td>${roleBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td>${btnEditar}</td>
+                </tr>`;
+            });
+        }
+
+        function toggleModulosGerencia() {
+            const isGerencia = document.getElementById('usu-chk-gerencia').checked;
+            document.getElementById('bloco-modulos-gerencia').style.display = isGerencia ? 'block' : 'none';
+        }
+
+        function carregarEdicaoUsuario(id) {
+            if (usuarioLogadoPermissao !== "admin") return alert("Apenas Administradores podem gerir privilégios.");
+            
+            const u = listaUsuariosGeral.find(user => user.id === id);
+            if (!u) return;
+
+            document.getElementById('usu-input-id').value = u.id;
+            document.getElementById('usu-input-email').value = u.email || u.id;
+            document.getElementById('usu-input-nome').value = u.nome || "";
+            document.getElementById('usu-input-cargo').value = u.cargo || "";
+            document.getElementById('usu-input-role').value = u.role || "operador";
+            document.getElementById('usu-input-status').value = u.status || "ativo";
+            
+            // Leitura do ABAC e preenchimento dos Checkboxes
+            const acessos = u.acessos || { gerencia: false, modulos: [] };
+            document.getElementById('usu-chk-gerencia').checked = acessos.gerencia;
+            
+            document.querySelectorAll('.chk-mod').forEach(chk => {
+                chk.checked = acessos.modulos.includes(chk.value);
+            });
+            toggleModulosGerencia();
+
+            document.getElementById('usu-btn-salvar').disabled = false;
+            document.getElementById('usu-btn-cancelar').style.display = "block";
+            document.getElementById('usu-titulo-formulario').innerText = "A editar: " + (u.nome || "Conta");
+        }
+
+        async function salvarPrivilegiosUsuario() {
+            if (usuarioLogadoPermissao !== "admin") return;
+
+            const id = document.getElementById('usu-input-id').value;
+            if (!id) return;
+
+            const modulosSelecionados = [];
+            document.querySelectorAll('.chk-mod:checked').forEach(chk => modulosSelecionados.push(chk.value));
+
+            const payload = {
+                nome: document.getElementById('usu-input-nome').value,
+                cargo: document.getElementById('usu-input-cargo').value,
+                role: document.getElementById('usu-input-role').value,
+                status: document.getElementById('usu-input-status').value,
+                acessos: {
+                    gerencia: document.getElementById('usu-chk-gerencia').checked,
+                    modulos: modulosSelecionados
+                }
+            };
+
+            try {
+                await fs.collection('usuarios').doc(id).update(payload);
+                alert("Privilégios guardados com sucesso!");
+                limparFormularioUsuario();
+            } catch (e) {
+                alert("Falha de segurança: Sem permissões no servidor para alterar isto.");
+            }
+        }
+
+        function limparFormularioUsuario() {
+            document.getElementById('usu-input-id').value = "";
+            document.getElementById('usu-input-email').value = "";
+            document.getElementById('usu-input-nome').value = "";
+            document.getElementById('usu-input-cargo').value = "";
+            document.getElementById('usu-input-role').value = "operador";
+            document.getElementById('usu-input-status').value = "ativo";
+            
+            document.getElementById('usu-chk-gerencia').checked = false;
+            document.querySelectorAll('.chk-mod').forEach(chk => chk.checked = false);
+            toggleModulosGerencia();
+            
+            document.getElementById('usu-btn-salvar').disabled = true;
+            document.getElementById('usu-btn-cancelar').style.display = "none";
+            document.getElementById('usu-titulo-formulario').innerText = "Gestão de Privilégios (RBAC + ABAC)";
         }
     </script>
         
