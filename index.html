@@ -1241,7 +1241,16 @@ function recuperarSenhaGerencia() {
             }, err => {
                 console.error("Erro ao escutar visitantes: ", err);
             });
-        } 
+            if (usuarioLogadoPermissao === "admin" || usuarioLogadoPermissao === "gerencia") {
+        fs.collection('usuarios').onSnapshot(snap => {
+            listaUsuariosGeral = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            renderizarTabelaUsuarios();
+        }, err => {
+            console.error("Erro ao carregar utilizadores: ", err);
+        });
+    }
+}
+        
 
         function filtrarETubularPostos() {
             const termoBusca = document.getElementById('busca-posto-input').value.toLowerCase();
@@ -2644,16 +2653,18 @@ function mudarPaginaAdmin(direcao) {
         /* ==========================================
            MÓDULO: GESTÃO DE UTILIZADORES (RBAC + ABAC)
         ========================================== */
-        let listaUsuariosGeral = [];
-
-        auth.onAuthStateChanged(user => {
-            if (user && (usuarioLogadoPermissao === "admin" || usuarioLogadoPermissao === "gerencia")) {
-                fs.collection('usuarios').onSnapshot(snap => {
-                    listaUsuariosGeral = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderizarTabelaUsuarios();
-                });
-            }
+        /* ==========================================
+   MÓDULO: GESTÃO DE UTILIZADORES (RBAC + ABAC)
+========================================== */
+let listaUsuariosGeral = [];
+auth.onAuthStateChanged(user => {
+    if (user && (usuarioLogadoPermissao === "admin" || usuarioLogadoPermissao === "gerencia")) {
+        fs.collection('usuarios').onSnapshot(snap => {
+            listaUsuariosGeral = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            renderizarTabelaUsuarios();
         });
+    }
+});
 
         function renderizarTabelaUsuarios() {
             const corpo = document.getElementById('corpo-tabela-usuarios');
