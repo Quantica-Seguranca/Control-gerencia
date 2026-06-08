@@ -359,25 +359,13 @@
                         <div class="legenda-item"><div class="legenda-cor" style="background:var(--calor-13)"></div> 13+ vis.</div>
                     </div>
                     
-                    <div style="margin-top: 35px; border-top: 2px solid #e2e8f0; padding-top: 25px;">
-                        <h3 style="margin: 0 0 5px 0; color: var(--primary);">🏆 Ranking: Top 20 Postos Mais Visitados</h3>
+                    <div style="margin-top: 35px; border-top: 2px solid #e2e8f0; padding-top: 25px;" id="container-ranking-top" data-html2pdf-ignore="true">
+                        <h3 style="margin: 0 0 5px 0; color: var(--primary);">🏆 Ranking: Top 15 Postos Mais Visitados</h3>
                         <p style="font-size: 12px; color: #7f8c8d; margin: 0 0 15px 0;">Baseado no volume total de visitas acumuladas no mês selecionado.</p>
                         
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 60px; text-align: center;">Posição</th>
-                                    <th>Nome do Posto</th>
-                                    <th style="width: 130px; text-align: center;">Total de Visitas</th>
-                                    <th>Motivos / Observações Registradas</th>
-                                </tr>
-                            </thead>
-                <tbody id="corpo-ranking-postos">
-                                <tr>
-                                    <td colspan="4" style="text-align: center; color: #7f8c8d; padding: 20px;">Nenhum dado processado para este mês.</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div style="height: 350px; position: relative; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <canvas id="chartRankingTop15"></canvas>
+                        </div>
                     </div>
 
                     <div style="margin-top: 35px; border-top: 2px solid #e2e8f0; padding-top: 25px;" data-html2pdf-ignore="true">
@@ -1049,7 +1037,8 @@ let localAbastecimentos = [];
 let gGastoViatura = null;
 let gLinhaLitros = null;
 let gRankingConsumo = null;
-let chartPoucasVisitas = null; // NOVO: Variável para o gráfico de baixa visitação
+let chartPoucasVisitas = null;
+let chartRankingTop15 = null; // NOVO: Controle do Gráfico Top 15 
 
 // Controle de datas e navegação interna
 let subModuloAtivo = 'abastecimentos';
@@ -1565,109 +1554,89 @@ htmlTabela += '</tr></thead><tbody>';
                     htmlTabela += `</tr>`;
                 });
          }
-            htmlTabela += '</tbody>';
+           
+         htmlTabela += '</tbody>';
             tabela.innerHTML = htmlTabela;
 
-            // NOVO: Processamento e renderização do Ranking Top 20
-            renderizarRankingTop20(mapaVolumetria, anoAlvo, mesAlvo);
+            // NOVO: Processamento e renderização do Gráfico Ranking Top 15
+            renderizarGraficoRankingTop15(mapaVolumetria);
 
             // NOVO: Desenhar o gráfico de atenção (baixa visitação)
             renderizarGraficoPoucasVisitas(mapaVolumetria);
         }
 
-        // NOVO: Função auxiliar para processar e desenhar o ranking na tela
-        function renderizarRankingTop20(mapaVolumetria, anoAlvo, mesAlvo) {
-            const corpoRanking = document.getElementById('corpo-ranking-postos');
-            if (!corpoRanking) return;
+        function renderizarGraficoRankingTop15(mapaVolumetria) {
+            const ctx = document.getElementById('chartRankingTop15');
+            if (!ctx) return;
 
-            // 1. Agrega os motivos mapeados por posto no mês corrente
-            const motivosPorPosto = {};
-            
-            // Coleta motivos de registros administrativos (visitantes_heatmap)
-            visitorsRegistrados.forEach(v => {
-                if (!v.data || !v.posto) return;
-                const partes = v.data.split('-');
-                if (partes.length === 3 && parseInt(partes[0], 10) === anoAlvo && (parseInt(partes[1], 10) - 1) === mesAlvo) {
-                    if (v.observacao && v.observacao.trim() !== "") {
-                        if (!motivosPorPosto[v.posto]) motivosPorPosto[v.posto] = [];
-                        motivosPorPosto[v.posto].push(v.observacao.trim());
-                    }
-                }
-            });
+            // Destroi o gráfico antigo ao trocar de mês
+            if (chartRankingTop15) chartRankingTop15.destroy();
 
-            // Coleta observações/motivos das rondas operacionais
-            rondas.forEach(r => {
-                if (!r.data || !r.posto) return;
-                const dataReg = parseDataFlex(r.data);
-                if (dataReg && dataReg.ano === anoAlvo && dataReg.mes === mesAlvo) {
-                    // Caso seu app salve justificativas ou observações na ronda, mude o campo abaixo (ex: r.observacao ou r.motivo)
-                    const obsRonda = r.observacao || r.motivo || r.descricao;
-                    if (obsRonda && obsRonda.trim() !== "") {
-                        if (!motivosPorPosto[r.posto]) motivosPorPosto[r.posto] = [];
-                        motivosPorPosto[r.posto].push(obsRonda.trim());
-                    }
-                }
-            });
-
-            // 2. Transforma o objeto volumétrico em um Array ordenável
             const listaRanking = [];
+
+            // Calcula o total do mês por posto
             for (const postoNome in mapaVolumetria) {
+                
+                // NOVO: Pula a "BASE - QUÂNTICA" para que ela não entre no ranking
+                if (postoNome.toUpperCase().includes("BASE - QUÂNTICA")) {
+                    continue; 
+                }
+
                 let somaVisitasNoMes = 0;
                 for (const dia in mapaVolumetria[postoNome]) {
                     somaVisitasNoMes += mapaVolumetria[postoNome][dia];
                 }
 
                 if (somaVisitasNoMes > 0) {
-                    // Filtra e remove duplicados de motivos do mesmo posto para exibição limpa
-                    const motivosUnicos = motivosPorPosto[postoNome] ? [...new Set(motivosPorPosto[postoNome])] : [];
-                    
                     listaRanking.push({
                         posto: postoNome,
-                        total: somaVisitasNoMes,
-                        motivos: motivosUnicos
+                        total: somaVisitasNoMes
                     });
                 }
             }
 
-            // 3. Ordena do maior para o menor volume de visitas e extrai os 20 primeiros
+            // Ordena do maior para o menor e corta no Top 15
+
+            // Ordena do maior para o menor e corta no Top 15
             listaRanking.sort((a, b) => b.total - a.total);
-            const top20 = listaRanking.slice(0, 20);
+            const top15 = listaRanking.slice(0, 15);
 
-            // 4. Renderiza as linhas na tabela de ranking
-            if (top20.length === 0) {
-                corpoRanking.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #7f8c8d; padding: 20px;">Nenhum registro de visitas ou rondas para o período selecionado.</td></tr>`;
-                return;
-            }
+            const labels = top15.map(item => item.posto);
+            const valores = top15.map(item => item.total);
 
-            let htmlRanking = "";
-            top20.forEach((item, index) => {
-                // Formata a lista de motivos como badges ou texto separado por vírgulas
-                let textoMotivos = `<span style="color:#94a3b8; font-style:italic;">Nenhuma observação informada.</span>`;
-                if (item.motivos.length > 0) {
-                    textoMotivos = item.motivos.map(m => `<span style="display:inline-block; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:4px; font-size:12px; margin: 2px;">${m}</span>`).join(" ");
+            // Desenha o novo gráfico de barras horizontais
+            chartRankingTop15 = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels.length > 0 ? labels : ['Nenhum dado no mês'],
+                    datasets: [{
+                        label: 'Total de Visitas',
+                        data: valores.length > 0 ? valores : [0],
+                        backgroundColor: '#3498db', // Cor azul profissional
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Inverte o eixo para ficar horizontal (ideal para ler nomes longos de postos)
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 } // Garante números inteiros
+                        },
+                        y: {
+                            ticks: {
+                                font: { size: 11 } // Diminui levemente a fonte para caber postos grandes
+                            }
+                        }
+                    }
                 }
-
-                // Destaca os 3 primeiros colocados com medalhas estilizadas
-                let medalha = `${index + 1}º`;
-                if (index === 0) medalha = "🥇 1º";
-                if (index === 1) medalha = "🥈 2º";
-                if (index === 2) medalha = "🥉 3º";
-
-                htmlRanking += `
-                    <tr>
-                        <td style="text-align: center; font-weight: bold; color: var(--primary);">${medalha}</td>
-                        <td style="font-weight: 600;">${item.posto}</td>
-                        <td style="text-align: center;">
-                            <span style="background:#e0f2fe; color:#0369a1; padding:3px 10px; border-radius:12px; font-weight:bold;">${item.total}</span>
-                        </td>
-                        <td>${textoMotivos}</td>
-                    </tr>
-                `;
             });
-
-            corpoRanking.innerHTML = htmlRanking;
-        }   
-
+        }
 
 
     
