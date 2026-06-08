@@ -372,18 +372,25 @@
                                     <th>Motivos / Observações Registradas</th>
                                 </tr>
                             </thead>
-                            <tbody id="corpo-ranking-postos">
+                <tbody id="corpo-ranking-postos">
                                 <tr>
                                     <td colspan="4" style="text-align: center; color: #7f8c8d; padding: 20px;">Nenhum dado processado para este mês.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    
-                </div>
-            </div>
-        </section>   
 
+                    <div style="margin-top: 35px; border-top: 2px solid #e2e8f0; padding-top: 25px;" data-html2pdf-ignore="true">
+                        <h3 style="margin: 0 0 5px 0; color: var(--danger);">🚨 Postos com Baixa Cobertura (0 a 3 visitas)</h3>
+                        <p style="font-size: 12px; color: #7f8c8d; margin: 0 0 15px 0;">Monitoramento de postos que receberam pouca ou nenhuma auditoria/ronda no mês.</p>
+                        
+                        <div style="height: 250px; position: relative; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <canvas id="chartPoucasVisitas"></canvas>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+        </section>             
         <section id="view-financeiro" class="view-secao">
             <div class="financeiro-grid-layout">
                 <div class="coluna-esquerda-financeiro">
@@ -1042,6 +1049,7 @@ let localAbastecimentos = [];
 let gGastoViatura = null;
 let gLinhaLitros = null;
 let gRankingConsumo = null;
+let chartPoucasVisitas = null; // NOVO: Variável para o gráfico de baixa visitação
 
 // Controle de datas e navegação interna
 let subModuloAtivo = 'abastecimentos';
@@ -1562,6 +1570,9 @@ htmlTabela += '</tr></thead><tbody>';
 
             // NOVO: Processamento e renderização do Ranking Top 20
             renderizarRankingTop20(mapaVolumetria, anoAlvo, mesAlvo);
+
+            // NOVO: Desenhar o gráfico de atenção (baixa visitação)
+            renderizarGraficoPoucasVisitas(mapaVolumetria);
         }
 
         // NOVO: Função auxiliar para processar e desenhar o ranking na tela
@@ -2793,6 +2804,65 @@ auth.onAuthStateChanged(user => {
             document.getElementById('usu-btn-salvar').disabled = true;
             document.getElementById('usu-btn-cancelar').style.display = "none";
             document.getElementById('usu-titulo-formulario').innerText = "Gestão de Privilégios (RBAC + ABAC)";
+        }
+        function renderizarGraficoPoucasVisitas(mapaVolumetria) {
+            const ctx = document.getElementById('chartPoucasVisitas');
+            if (!ctx) return;
+            
+            // Destroi o gráfico anterior caso exista para evitar sobreposição ao trocar de mês
+            if (chartPoucasVisitas) chartPoucasVisitas.destroy();
+
+            const postosAlerta = [];
+
+            // Calcula o total do mês por posto
+            for (const postoNome in mapaVolumetria) {
+                let somaVisitasNoMes = 0;
+                for (const dia in mapaVolumetria[postoNome]) {
+                    somaVisitasNoMes += mapaVolumetria[postoNome][dia];
+                }
+
+                // Considera "Baixa Visitação" quem teve 3 ou menos visitas no mês. (Pode alterar esse número se desejar)
+                if (somaVisitasNoMes <= 3) {
+                    postosAlerta.push({
+                        posto: postoNome,
+                        visitas: somaVisitasNoMes
+                    });
+                }
+            }
+
+            // Ordena do que teve MENOS visitas para o que teve MAIS
+            postosAlerta.sort((a, b) => a.visitas - b.visitas);
+
+            const labels = postosAlerta.map(item => item.posto);
+            const valores = postosAlerta.map(item => item.visitas);
+
+            // Gera o gráfico
+            chartPoucasVisitas = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels.length > 0 ? labels : ['Todos os postos bem visitados!'],
+                    datasets: [{
+                        label: 'Visitas no Mês',
+                        data: valores.length > 0 ? valores : [0],
+                        backgroundColor: valores.length > 0 ? '#e74c3c' : '#27ae60', // Vermelho para alerta, verde se estiver tudo ok
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false } 
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            suggestedMax: 4, // Força o eixo Y a mostrar até 4 para ficar visualmente legível
+                            ticks: { stepSize: 1 } // Garante que o eixo Y mostre apenas números inteiros
+                        } 
+                    }
+                }
+            });
         }
     </script>
         
