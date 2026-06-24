@@ -2920,21 +2920,36 @@ auth.onAuthStateChanged(user => {
             }
 
             rondasFiltradas.forEach(r => {
-                // 1. Define o Autor da Ronda
+                // 1. Define o Autor da Ronda e tenta puxar a viatura
                 let nomeOperador = "Operador Oculto/Excluído";
+                let placaVtr = r.vtr || r.placaViatura || ""; // Plano A: Tenta puxar a placa salva na própria ronda
+
                 const userRef = listaUsuariosGeral.find(u => u.id === r.uid);
-                if (userRef && userRef.nome) {
-                    nomeOperador = userRef.nome;
+                
+                if (userRef) {
+                    // Puxa o Nome
+                    if (userRef.nome) {
+                        nomeOperador = userRef.nome;
+                    } else if (userRef.email) {
+                        nomeOperador = userRef.email.split('@')[0];
+                    }
+                    
+                    // Plano B: Se a ronda não tem placa, puxa a placa atual do Perfil do Operador
+                    if (!placaVtr && userRef.placa) {
+                        placaVtr = userRef.placa;
+                    }
                 } else if (r.uid) {
                     nomeOperador = "ID: " + r.uid.substring(0,5) + "..."; // Fallback técnico
                 }
+
+                // Se mesmo assim não houver placa, mostra os traços
+                if (!placaVtr || placaVtr.trim() === "") placaVtr = "---";
 
                 // 2. Define o Fiscalizado no Posto
                 const fiscalizado = r.colaborador && r.colaborador !== "N/A" ? r.colaborador : "Sem contato";
                 const matFiscalizado = r.colaboradorMat && r.colaboradorMat !== "N/A" ? ` (Mat: ${r.colaboradorMat})` : "";
 
                 const dataBr = r.data ? r.data.split('-').reverse().join('/') : '-';
-                const placaVtr = r.vtr || r.placaViatura || "---";
 
                 corpo.innerHTML += `<tr>
                     <td><strong>${dataBr}</strong><br><small style="color:var(--accent);">${r.hora}</small></td>
@@ -2948,7 +2963,6 @@ auth.onAuthStateChanged(user => {
                     <td><small style="color:#475569;">${r.obs || '-'}</small></td>
                 </tr>`;
             });
-        }
     </script>
         
     
