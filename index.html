@@ -281,6 +281,7 @@
         <h2>GERÊNCIA</h2>
         <button class="nav-btn active" onclick="alternarVisao('postos')">🏢 Postos</button>
         <button class="nav-btn" onclick="alternarVisao('calor')">🔥 Mapa de Calor</button>
+        <button class="nav-btn" onclick="alternarVisao('historico')">📋 Histórico de Rondas</button>
         <button class="nav-btn" onclick="alternarVisao('financeiro')">💰 Financeiro</button>
         <button class="nav-btn" id="btn-menu-admin" onclick="alternarVisao('administracao')">👑 Administração</button>
         <button class="nav-btn" id="btn-menu-combustivel" onclick="alternarVisao('combustivel')">⛽ Combustível</button>
@@ -833,6 +834,43 @@
                 </div>
             </div>
         </section>
+        <section id="view-historico" class="view-secao">
+            <div class="admin-painel-tabela">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 style="margin:0; color:var(--primary); font-size:20px;">Auditoria de Rondas por Operador</h2>
+                </div>
+                
+                <div class="tabela-controles" style="display:flex; gap:10px; margin-bottom:15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="flex: 2;">
+                        <label style="font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px;">Busca Geral:</label>
+                        <input type="text" id="busca-historico" placeholder="🔍 Buscar por operador, posto ou viatura..." oninput="renderizarHistoricoRondas()" style="margin-bottom:0; width: 100%;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; font-weight: bold; color: var(--secondary); display: block; margin-bottom: 5px;">Filtrar por Data:</label>
+                        <input type="date" id="filtro-data-historico" onchange="renderizarHistoricoRondas()" style="margin-bottom:0; width: 100%;">
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="secondary" onclick="document.getElementById('filtro-data-historico').value=''; renderizarHistoricoRondas();" style="height: 42px;">Limpar Data</button>
+                    </div>
+                </div>
+
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Operador</th>
+                            <th>Posto</th>
+                            <th>Missão</th>
+                            <th>Viatura / KM</th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-historico-rondas">
+                        <tr><td colspan="6" style="text-align:center; color:#7f8c8d;">A carregar auditoria...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
         
         <section id="view-usuarios" class="view-secao">
             <div class="admin-grid-layout">
@@ -1193,15 +1231,20 @@ function recuperarSenhaGerencia() {
                 if(id === 'combustivel') document.getElementById('btn-menu-combustivel').classList.add('active');
             }
             
-            let tituloAba = id.toUpperCase();
+           let tituloAba = id.toUpperCase();
             if(id === 'administracao') tituloAba = 'ADMINISTRAÇÃO CORPORATIVA';
             if(id === 'combustivel') tituloAba = 'CONTROLE DE COMBUSTÍVEL';
-            if(id === 'usuarios') tituloAba = 'GESTÃO DE ACESSOS E PRIVILÉGIOS'; // ADICIONADO
+            if(id === 'usuarios') tituloAba = 'GESTÃO DE ACESSOS E PRIVILÉGIOS';
+            if(id === 'historico') tituloAba = 'HISTÓRICO OPERACIONAL DE RONDAS';
+            
             document.getElementById('titulo-aba').innerText = tituloAba;
             
             if(id === 'financeiro') {
                 cancelarEdicaoFinanceira();
                 renderizarFinanceiro();
+            }
+            if(id === 'historico') {
+                renderizarHistoricoRondas();
             }
             if(id === 'administracao') {
                 limparFormularioAdmin();
@@ -1227,11 +1270,11 @@ function recuperarSenhaGerencia() {
                 document.getElementById('postos-p-total').innerText = listaPostos.length;
             });
 
-            fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
+           fs.collection('rondas').orderBy('timestamp', 'desc').onSnapshot(snap => {
                 rondas = snap.docs.map(d => d.data());
                 desenharCalorMatriz(); 
+                renderizarHistoricoRondas();
             });
-
             fs.collection('visitantes_heatmap').orderBy('criadoEm', 'desc').onSnapshot(snap => {
                 visitorsRegistrados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderizarTabelaAdmin();
@@ -2837,6 +2880,50 @@ auth.onAuthStateChanged(user => {
                         } 
                     }
                 }
+            });
+        }
+        function renderizarHistoricoRondas() {
+            const corpo = document.getElementById('corpo-historico-rondas');
+            const termo = (document.getElementById('busca-historico').value || "").toLowerCase();
+            const dataFiltro = document.getElementById('filtro-data-historico').value;
+            
+            if (!corpo) return;
+            corpo.innerHTML = "";
+
+            const rondasFiltradas = rondas.filter(r => {
+                let nomeOperador = r.colaborador || "Desconhecido";
+                const userRef = listaUsuariosGeral.find(u => u.id === r.uid);
+                if (userRef && userRef.nome) nomeOperador = userRef.nome;
+
+                const stringBusca = `${nomeOperador} ${r.posto} ${r.vtr} ${r.placaViatura}`.toLowerCase();
+                
+                const bateTexto = termo === "" || stringBusca.includes(termo);
+                const bateData = dataFiltro === "" || r.data === dataFiltro;
+                
+                return bateTexto && bateData;
+            });
+
+            if (rondasFiltradas.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">Nenhuma ronda encontrada para os filtros selecionados.</td></tr>`;
+                return;
+            }
+
+            rondasFiltradas.forEach(r => {
+                let nomeOperador = r.colaborador || "Desconhecido";
+                const userRef = listaUsuariosGeral.find(u => u.id === r.uid);
+                if (userRef && userRef.nome) nomeOperador = userRef.nome;
+
+                const dataBr = r.data ? r.data.split('-').reverse().join('/') : '-';
+                const placaVtr = r.vtr || r.placaViatura || "---";
+
+                corpo.innerHTML += `<tr>
+                    <td><strong>${dataBr}</strong><br><small style="color:var(--accent);">${r.hora}</small></td>
+                    <td><strong>${nomeOperador.toUpperCase()}</strong><br><small>Mat: ${r.colaboradorMat || '-'}</small></td>
+                    <td style="font-weight:bold; color:var(--primary);">${r.posto}</td>
+                    <td><span class="badge-status badge-ativa" style="background:#e0f2fe; color:#0369a1;">${r.motivo || 'Rotina'}</span></td>
+                    <td>VTR: <strong>${placaVtr}</strong><br><small>KM: ${r.km}</small></td>
+                    <td><small style="color:#475569;">${r.obs || '-'}</small></td>
+                </tr>`;
             });
         }
     </script>
