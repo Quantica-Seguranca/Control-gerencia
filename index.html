@@ -2897,11 +2897,15 @@ auth.onAuthStateChanged(user => {
             corpo.innerHTML = "";
 
             const rondasFiltradas = rondas.filter(r => {
-                let nomeOperador = r.colaborador || "Desconhecido";
+                // 1. Puxa APENAS o nome do Supervisor logado (Autor da ronda)
+                let nomeOperador = "Operador Oculto/Excluído";
                 const userRef = listaUsuariosGeral.find(u => u.id === r.uid);
                 if (userRef && userRef.nome) nomeOperador = userRef.nome;
 
-                const stringBusca = `${nomeOperador} ${r.posto} ${r.vtr} ${r.placaViatura}`.toLowerCase();
+                // 2. Separa o nome do funcionário que foi auditado no posto
+                const fiscalizado = r.colaborador || "";
+
+                const stringBusca = `${nomeOperador} ${r.posto} ${r.vtr} ${r.placaViatura} ${fiscalizado}`.toLowerCase();
                 
                 const bateTexto = termo === "" || stringBusca.includes(termo);
                 const bateData = dataFiltro === "" || r.data === dataFiltro;
@@ -2915,17 +2919,29 @@ auth.onAuthStateChanged(user => {
             }
 
             rondasFiltradas.forEach(r => {
-                let nomeOperador = r.colaborador || "Desconhecido";
+                // 1. Define o Autor da Ronda
+                let nomeOperador = "Operador Oculto/Excluído";
                 const userRef = listaUsuariosGeral.find(u => u.id === r.uid);
-                if (userRef && userRef.nome) nomeOperador = userRef.nome;
+                if (userRef && userRef.nome) {
+                    nomeOperador = userRef.nome;
+                } else if (r.uid) {
+                    nomeOperador = "ID: " + r.uid.substring(0,5) + "..."; // Fallback técnico
+                }
+
+                // 2. Define o Fiscalizado no Posto
+                const fiscalizado = r.colaborador && r.colaborador !== "N/A" ? r.colaborador : "Sem contato";
+                const matFiscalizado = r.colaboradorMat && r.colaboradorMat !== "N/A" ? ` (Mat: ${r.colaboradorMat})` : "";
 
                 const dataBr = r.data ? r.data.split('-').reverse().join('/') : '-';
                 const placaVtr = r.vtr || r.placaViatura || "---";
 
                 corpo.innerHTML += `<tr>
                     <td><strong>${dataBr}</strong><br><small style="color:var(--accent);">${r.hora}</small></td>
-                    <td><strong>${nomeOperador.toUpperCase()}</strong><br><small>Mat: ${r.colaboradorMat || '-'}</small></td>
-                    <td style="font-weight:bold; color:var(--primary);">${r.posto}</td>
+                    <td><strong style="color:#0f1c2e;">${nomeOperador.toUpperCase()}</strong></td>
+                    <td>
+                        <strong style="color:var(--primary);">${r.posto}</strong><br>
+                        <small style="color:#64748b;">No local: ${fiscalizado}${matFiscalizado}</small>
+                    </td>
                     <td><span class="badge-status badge-ativa" style="background:#e0f2fe; color:#0369a1;">${r.motivo || 'Rotina'}</span></td>
                     <td>VTR: <strong>${placaVtr}</strong><br><small>KM: ${r.km}</small></td>
                     <td><small style="color:#475569;">${r.obs || '-'}</small></td>
