@@ -1292,6 +1292,7 @@ function recuperarSenhaGerencia() {
         fs.collection('usuarios').onSnapshot(snap => {
             listaUsuariosGeral = snap.docs.map(d => ({id: d.id, ...d.data()}));
             renderizarTabelaUsuarios();
+            renderizarHistoricoRondas();
         }, err => {
             console.error("Erro ao carregar utilizadores: ", err);
         });
