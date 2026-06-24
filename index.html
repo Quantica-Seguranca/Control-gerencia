@@ -1135,6 +1135,12 @@ let filtroDataCombustivel = new Date();
                                 btnMenu.style.display = 'block';
                                 if (!primeiroModuloDisponivel) primeiroModuloDisponivel = mod;
                             }
+                            
+                            // VISÃO DE SISTEMA: Se o usuário tem acesso ao 'calor', libera o 'historico' junto
+                            if (mod === 'calor') {
+                                const btnHist = document.querySelector(`.nav-btn[onclick*="historico"]`);
+                                if (btnHist) btnHist.style.display = 'block';
+                            }
                         });
                     }
 
